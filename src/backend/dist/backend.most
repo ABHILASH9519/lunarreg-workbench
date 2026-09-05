@@ -1,0 +1,190 @@
+// Version: 4.0.0
+type AccessControlState__299827415 =
+  {
+    var adminAssigned : Bool;
+    userRoles : Map__386906547<Principal, UserRole__817541744>
+  };
+type CorrespondencePoint__377727644 =
+  {reference : Point2D__1028762381; source : Point2D__1028762381};
+type CorrespondencePoint__7838537 =
+  {reference : Point2D__880515671; source : Point2D__880515671};
+type Data__265875254<K, V> = {var count : Nat__58649523; kvs : [var ?(K, V)]};
+type DetectorConfig__491532513 =
+  {
+    detector : FeatureDetector__696382879;
+    edgeThreshold : Nat;
+    maxFeatures : Nat;
+    nLevels : Nat;
+    scaleFactor : Float
+  };
+type DetectorConfig__847008541 =
+  {
+    detector : FeatureDetector__187919393;
+    edgeThreshold : Nat;
+    maxFeatures : Nat;
+    nLevels : Nat;
+    scaleFactor : Float
+  };
+type FeatureDetector__187919393 = {#brisk; #kaze; #orb; #sift};
+type FeatureDetector__696382879 = {#brisk; #kaze; #orb; #sift};
+type ImageMetadata__7050934 =
+  {format : Text; height : Nat; name : Text; sizeBytes : Nat; width : Nat};
+type ImageMetadata__767259024 =
+  {format : Text; height : Nat; name : Text; sizeBytes : Nat; width : Nat};
+type ImageRef__127455550 = Text;
+type ImageRef__394866264 = Text;
+type InputImage__156381714 =
+  {metadata : ImageMetadata__767259024; ref : ImageRef__394866264};
+type InputImage__65827834 =
+  {metadata : ImageMetadata__7050934; ref : ImageRef__127455550};
+type Internal__161573640<K, V> =
+  {children : [var ?Node__430031793<K, V>]; data : Data__265875254<K, V>};
+type JobId__339598917 = Nat;
+type JobId__381723500 = Nat;
+type JobId__567733654 = Nat;
+type JobMetrics__199214139 =
+  {
+    inlierCount : ?Nat;
+    outlierCount : ?Nat;
+    reprojectionError : ?Float;
+    rmse : ?Float;
+    rotationDegrees : ?Float;
+    scale : ?Float;
+    spatialCoverage : ?Float
+  };
+type JobMetrics__476123153 =
+  {
+    inlierCount : ?Nat;
+    outlierCount : ?Nat;
+    reprojectionError : ?Float;
+    rmse : ?Float;
+    rotationDegrees : ?Float;
+    scale : ?Float;
+    spatialCoverage : ?Float
+  };
+type JobResult__453763479 =
+  {
+    correspondences : [CorrespondencePoint__377727644];
+    metrics : JobMetrics__199214139;
+    registeredOutput : ImageRef__394866264;
+    report : Text;
+    transformationMatrix : Matrix3x3__153537371
+  };
+type JobResult__524304965 =
+  {
+    correspondences : [CorrespondencePoint__7838537];
+    metrics : JobMetrics__476123153;
+    registeredOutput : ImageRef__127455550;
+    report : Text;
+    transformationMatrix : Matrix3x3__252687854
+  };
+type JobStatus__374926235 = {#completed; #failed; #pending; #processing};
+type JobStatus__960699282 = {#completed; #failed; #pending; #processing};
+type Job__134484347 =
+  {
+    config : ReproConfig__813675062;
+    createdAt : Timestamp__32756545;
+    error : ?Text;
+    id : JobId__381723500;
+    owner : UserId__593076458;
+    referenceImage : InputImage__156381714;
+    result : ?JobResult__453763479;
+    sourceImage : InputImage__156381714;
+    status : JobStatus__960699282
+  };
+type Job__848768964 =
+  {
+    config : ReproConfig__792105510;
+    createdAt : Timestamp__301639476;
+    error : ?Text;
+    id : JobId__567733654;
+    owner : UserId__158757552;
+    referenceImage : InputImage__65827834;
+    result : ?JobResult__524304965;
+    sourceImage : InputImage__65827834;
+    status : JobStatus__374926235
+  };
+type Leaf__1045638083<K, V> = {data : Data__265875254<K, V>};
+type Map__13625999<K, V> =
+  {var root : Node__430031793<K, V>; var size : Nat__58649523};
+type Map__386906547<K, V> = Map__670138087<K, V>;
+type Map__670138087<K, V> = Map__13625999<K, V>;
+type MatchingConfig__1039443926 =
+  {crossCheck : Bool; maxMatches : Nat; ratioThreshold : Float};
+type MatchingConfig__408285873 =
+  {crossCheck : Bool; maxMatches : Nat; ratioThreshold : Float};
+type Matrix3x3__153537371 = [Float];
+type Matrix3x3__252687854 = [Float];
+type Nat__58649523 = Nat__920180692;
+type Nat__920180692 = Nat;
+type NewActor__311599132 =
+  {
+    accessControlState : AccessControlState__299827415;
+    jobState : {var nextJobId : JobId__381723500};
+    jobs : Map__386906547<JobId__381723500, Job__134484347>
+  };
+type Node__430031793<K, V> =
+  {#internal : Internal__161573640<K, V>; #leaf : Leaf__1045638083<K, V>};
+type OldActor__355695706 = {};
+type Point2D__1028762381 = {x : Float; y : Float};
+type Point2D__880515671 = {x : Float; y : Float};
+type PreprocessingSettings__144716485 =
+  {
+    contrastEnhancement : Bool;
+    denoise : Bool;
+    grayscale : Bool;
+    resizeHeight : ?Nat;
+    resizeWidth : ?Nat
+  };
+type PreprocessingSettings__624307976 =
+  {
+    contrastEnhancement : Bool;
+    denoise : Bool;
+    grayscale : Bool;
+    resizeHeight : ?Nat;
+    resizeWidth : ?Nat
+  };
+type ReproConfig__792105510 =
+  {
+    detector : DetectorConfig__847008541;
+    matching : MatchingConfig__408285873;
+    model : TransformationModel__24796181;
+    preprocessing : PreprocessingSettings__144716485;
+    thresholds : Thresholds__153037265
+  };
+type ReproConfig__813675062 =
+  {
+    detector : DetectorConfig__491532513;
+    matching : MatchingConfig__1039443926;
+    model : TransformationModel__905101933;
+    preprocessing : PreprocessingSettings__624307976;
+    thresholds : Thresholds__983422780
+  };
+type Thresholds__153037265 =
+  {minInlierRatio : Float; ransacReprojThreshold : Float};
+type Thresholds__983422780 =
+  {minInlierRatio : Float; ransacReprojThreshold : Float};
+type Timestamp__301639476 = Int;
+type Timestamp__32756545 = Int;
+type TransformationModel__24796181 = {#affine; #homography; #similarity};
+type TransformationModel__905101933 = {#affine; #homography; #similarity};
+type UserId__158757552 = Principal;
+type UserId__593076458 = Principal;
+type UserRole__817541744 = {#admin; #guest; #user};
+type UserRole__91647283 = {#admin; #guest; #user};
+{
+  "20260901_000000" : (_old : OldActor__355695706) -> NewActor__311599132
+}
+actor  {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__386906547<Principal, UserRole__91647283>
+    };
+  stable jobState : {var nextJobId : JobId__339598917};
+  stable jobs :
+    {
+      var root : Node__430031793<JobId__339598917, Job__848768964>;
+      var size : Nat__58649523
+    }
+};

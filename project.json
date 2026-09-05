@@ -1,0 +1,20 @@
+{
+  "overview": "A lunar image registration and correspondence analysis workbench for space technology, letting users register multi-modal lunar imagery (OHRC, TMC-2, IIRS, LRO NAC, SELENE) with a real in-browser computer vision pipeline, scientific integrity, and persistent experiment history.",
+  "features": [
+    "Run a real in-browser image registration pipeline on demo lunar image pairs",
+    "Compare Similarity, Affine, and Homography transformation models with recommended-model selection",
+    "View correspondence points with inliers/outliers, spatial distribution, and match quality filtering",
+    "Analyze sun-angle, scale, and multi-modal robustness of registrations",
+    "Persist per-user experiment history and reproduce any job from its stored configuration",
+    "Export full results packages including registered images, correspondence data, metrics, and PDF reports"
+  ],
+  "category": "productivity",
+  "tags": [
+    "space-technology",
+    "image-registration",
+    "computer-vision",
+    "scientific",
+    "lunar"
+  ],
+  "last_updated": "2026-09-01T07:44:04.776Z"
+}

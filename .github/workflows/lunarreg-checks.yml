@@ -25,5 +25,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Type-check workspace
         run: pnpm typecheck
+      - name: Build frontend bundle
+        run: pnpm --filter @caffeine/template-frontend build
       - name: Run frontend and backend tests
         run: pnpm test

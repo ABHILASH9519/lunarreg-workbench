@@ -18,7 +18,7 @@ describe("matchDescriptors cross-check", () => {
 
   it("rejects a one-way nearest-neighbour match when cross-check is enabled", () => {
     const source = [descriptor(0, 0), descriptor(0, 1)];
-    const reference = [descriptor(0, 0)];
+    const reference = [descriptor(0, 0), descriptor(1, 1)];
     const matches = matchDescriptors(source, reference, {
       ratioThreshold: 1,
       maxMatches: 10,

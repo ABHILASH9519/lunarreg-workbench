@@ -68,9 +68,10 @@ export function matchDescriptors(
         second = d;
       }
     }
-    if (bestIdx < 0) continue;
-    // Lowe's ratio test: reject ambiguous matches.
-    const ratio = second === Number.POSITIVE_INFINITY ? 0 : best / second;
+    if (bestIdx < 0 || second === Number.POSITIVE_INFINITY) continue;
+    // Lowe's ratio test requires two candidates. Treat a zero/zero tie as
+    // maximally ambiguous instead of allowing NaN to pass the threshold.
+    const ratio = second === 0 ? (best === 0 ? 1 : Number.POSITIVE_INFINITY) : best / second;
     if (ratio > opts.ratioThreshold) continue;
     if (reverseBest && reverseBest[bestIdx] !== i) continue;
     matches.push({

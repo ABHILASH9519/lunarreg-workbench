@@ -65,6 +65,7 @@ export function estimateSimilarity(points: ModelPoints): Matrix3x3 | null {
   const c = meanU - a * meanX - b * meanY;
   const f = meanV - d * meanX - e * meanY;
   return [a, b, c, d, e, f, 0, 0, 1];
+}
 
 /** Estimate an affine transform (6 DOF) from >=3 points via least squares. */
 export function estimateAffine(points: ModelPoints): Matrix3x3 | null {
@@ -221,6 +222,7 @@ export function estimateHomography(points: ModelPoints): Matrix3x3 | null {
   const normalized = h.map((value) => value / scale);
   if (normalized.some((value) => !Number.isFinite(value))) return null;
   return normalized as Matrix3x3;
+}
 
 /** Decompose a similarity/affine matrix into scale, rotation, translation. */
 export function decomposeMatrix(m: Matrix3x3): {

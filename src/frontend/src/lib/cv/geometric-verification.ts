@@ -113,6 +113,22 @@ export function ransac(
   }
 
   const sampleSize = model === "homography" ? 4 : model === "affine" ? 3 : 2;
+  // A minimal sample cannot be drawn when fewer than sampleSize matches exist.
+  // Return an explicit rejected result instead of entering an infinite loop.
+  if (n < sampleSize) {
+    const identity: Matrix3x3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    const classified = classifyCorrespondences(model, identity, points, opts.reprojThreshold)
+      .map((point) => ({ ...point, inlier: false }));
+    return {
+      matrix: identity,
+      correspondences: classified,
+      inlierCount: 0,
+      outlierCount: n,
+      inlierRatio: 0,
+      meanReprojError: 0,
+      accepted: false,
+    };
+  }
   const rand = mulberry32(42);
   let bestMatrix: Matrix3x3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   let bestInliers = 0;

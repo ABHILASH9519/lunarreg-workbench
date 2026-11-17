@@ -27,4 +27,21 @@ describe("matchDescriptors cross-check", () => {
     expect(matches).toHaveLength(1);
     expect(matches[0].sourceIndex).toBe(0);
   });
+
+  it("rejects ratio tests without two reference candidates", () => {
+    const matches = matchDescriptors([descriptor(0, 0)], [descriptor(0, 0)], {
+      ratioThreshold: 0.75,
+      maxMatches: 10,
+    });
+    expect(matches).toHaveLength(0);
+  });
+
+  it("rejects an exact tie instead of allowing a NaN ratio through", () => {
+    const matches = matchDescriptors(
+      [descriptor(0, 0)],
+      [descriptor(0, 0), descriptor(0, 0)],
+      { ratioThreshold: 0.75, maxMatches: 10 },
+    );
+    expect(matches).toHaveLength(0);
+  });
 });

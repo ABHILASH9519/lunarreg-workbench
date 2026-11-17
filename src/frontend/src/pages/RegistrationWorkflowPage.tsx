@@ -63,7 +63,6 @@ import {
   ScanSearch,
   Settings2,
   SlidersHorizontal,
-  Sparkles,
   Upload,
   Workflow,
 } from "lucide-react";
@@ -731,17 +730,6 @@ export default function RegistrationWorkflowPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {modelChoice === "recommended" && (
-                  <p className="text-muted-foreground mt-1.5 flex items-start gap-1.5 text-xs">
-                    <Sparkles
-                      className="mt-0.5 size-3.5 shrink-0 text-warning"
-                      aria-hidden="true"
-                    />
-                    The recommended model is chosen from actual correspondence
-                    and geometric-consistency metrics (inlier ratio,
-                    reprojection error, degrees of freedom) — never hard-coded.
-                  </p>
-                )}
               </Field>
               <Field label={`Spatial grid (${gridChoice}×${gridChoice})`}>
                 <fieldset className="flex gap-2" aria-label="Spatial grid size">

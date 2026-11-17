@@ -274,6 +274,9 @@ describe("runPipeline", () => {
       "completed",
     ]);
 
+    // The explicitly selected model must be the one used for the output warp.
+    expect(output.result.recommendedModel).toBe(config.model);
+
     // Metrics are real numbers derived from the fitted model and matches.
     expect(output.result.metrics.inlierCount).toBeDefined();
     expect(output.result.transformationMatrix).toHaveLength(9);

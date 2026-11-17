@@ -1,113 +1,83 @@
-# LunarRegWorkbench 🌕
-### Automated Lunar Image Registration & Correspondence Analysis
+# LunarReg Workbench 🌕
 
-LunarRegWorkbench is a computer-vision-based platform designed to align and analyze lunar images captured by different missions and sensors, including Chandrayaan-2, the Lunar Reconnaissance Orbiter (LRO), and SELENE. It identifies common lunar surface features and registers a source image against a reference image despite differences in illumination, viewing angle, scale, resolution, and sensor characteristics.
+**Automated lunar image registration and correspondence analysis**
 
-## The Problem
+LunarReg Workbench aligns a moving lunar image with a fixed reference image and evaluates the geometric consistency of the alignment. It is intended for comparative analysis of lunar imagery from missions such as Chandrayaan-2, NASA's Lunar Reconnaissance Orbiter (LRO), and SELENE.
 
-Images of the same lunar region can look very different when captured by different spacecraft, cameras, or under different lighting conditions. This makes direct comparison and accurate alignment challenging.
+## Current implementation
 
-## Our Solution
+The current repository is a React 19 + TypeScript + Vite application with an Internet Computer (Motoko) canister for user-scoped registration-job metadata and result history. The image-registration pipeline currently executes in the browser on decoded image pixels; it is **not** a Python/OpenCV server implementation.
 
-LunarRegWorkbench provides a structured image-registration workflow that detects and matches features across two images, estimates a geometric transformation, aligns the source image to the reference, and evaluates the result using visual and quantitative measures.
+### Implemented in the current codebase
 
-## Key Features
+- Source (moving) and reference (fixed) image selection.
+- PNG and JPEG/JPG uploads, with a 20 MB per-file guard.
+- Grayscale conversion, optional denoising, and contrast enhancement.
+- Gaussian-pyramid generation for multi-scale analysis (the current feature detector operates on the processed base level).
+- FAST-style corner detection with Harris response ranking and a deterministic BRIEF-like binary descriptor (an ORB-inspired implementation, not OpenCV's ORB implementation).
+- Hamming-distance descriptor matching, Lowe-style ratio filtering, and mutual-nearest-neighbour cross-check.
+- RANSAC geometric verification for Similarity, Affine, and Homography candidates.
+- Explicit user-selected transformation model for the registration warp; candidate-model statistics remain available for comparison.
+- Spatial-grid correspondence filtering.
+- Registered grayscale output, overlay, difference, and checkerboard composites.
+- Computed inlier/outlier counts, RMSE, reprojection error, spatial coverage, scale, and rotation where available.
+- Job creation, result persistence, job history, and report/export interfaces through the application.
 
-- **Multi-format input:** PNG, JPG/JPEG, TIFF, and GeoTIFF, subject to implementation support.
-- **Image preprocessing:** Contrast enhancement, denoising, and illumination normalization.
-- **Multi-scale processing:** Helps handle differences in image scale and resolution.
-- **Feature extraction:** SIFT, ORB, and AKAZE.
-- **Feature matching:** Descriptor matching with filtering, ratio testing, and cross-checking.
-- **Geometric verification:** RANSAC-based outlier rejection.
-- **Transformation models:** Similarity, Affine, and Homography, depending on correspondence quality.
-- **Spatial coverage:** Grid-based selection helps avoid matches clustering in one region.
-- **Sub-pixel refinement:** Supports more precise correspondence locations.
-- **Visual comparison:** Original, reference, registered, overlay, difference, and checkerboard views.
-- **Quantitative evaluation:** RMSE, inlier count, inlier ratio, reprojection error, spatial coverage, scale, rotation, and processing time.
-- **Experiment history and reporting:** Designed to save configurations, metrics, correspondence points, transformation parameters, and outputs, and to generate reports.
+### Not yet integrated (do not present as completed)
 
-## How It Works
+- Native TIFF/GeoTIFF decoding and geospatial metadata preservation.
+- OpenCV-backed SIFT, ORB, AKAZE, BRISK, or KAZE implementations. The current detector is the documented FAST + BRIEF-like implementation only.
+- True multi-octave feature detection across the generated pyramid.
+- Sub-pixel correspondence refinement.
+- A Python/OpenCV processing service or server-side GPU acceleration.
+- Independent scientific validation against a curated set of official cross-mission lunar image pairs.
 
-1. **Upload images** — Select a source/moving image and a reference/fixed image.
-2. **Preprocess** — Enhance image contrast and reduce illumination differences.
-3. **Process at multiple scales** — Build image pyramids to handle scale and resolution variation.
-4. **Extract features** — Detect distinctive points using SIFT, ORB, or AKAZE.
-5. **Match features** — Find likely correspondences between the two images.
-6. **Verify matches** — Use filtering and RANSAC to reject unreliable matches.
-7. **Estimate transformation** — Determine a suitable Similarity, Affine, or Homography transformation.
-8. **Register the image** — Transform the source image to align with the reference.
-9. **Inspect and evaluate** — Review visual comparisons and quantitative metrics.
+The UI should show unavailable metrics as N/A and should not substitute sample values for measurements. Bundled synthetic pairs are labeled DEMO/SAMPLE DATA and must not be described as official mission imagery.
 
-## Technology Stack
+## Workflow
 
-| Layer | Technologies |
+1. Choose a bundled synthetic sample pair or upload a supported PNG/JPEG pair.
+2. Configure preprocessing, feature count, descriptor ratio/cross-check, RANSAC threshold, spatial grid, and transformation model.
+3. Run the browser-side registration pipeline.
+4. Inspect the correspondence set, inliers/outliers, registered output, overlay, difference, and checkerboard views.
+5. Review computed metrics and warnings.
+6. Save the result to the signed-in user's job history and export the available report/artifacts.
+
+## Technology stack
+
+| Layer | Current technology |
 |---|---|
-| Frontend | React, Next.js, TypeScript |
-| Computer-vision processing | Python, OpenCV |
-| Backend communication | REST API architecture |
-| Image processing | SIFT, ORB, AKAZE, descriptor matching, RANSAC |
-| Data and outputs | Image/file storage, metadata, experiment history, reports |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS |
+| UI and routing | Radix UI components, TanStack Router, Zustand |
+| Registration engine | TypeScript browser-side computer-vision implementation |
+| Geometric verification | RANSAC and Similarity/Affine/Homography estimators |
+| Backend | Motoko canister on the Internet Computer |
+| Persistence | User-scoped job and result records in the canister; uploaded image bytes are processed client-side |
+| Tests | Vitest, Testing Library, PocketIC backend test lane |
 
-> **Implementation note:** Confirm the database, deployment platform, and any additional services against the current codebase before listing them as implemented technologies.
+## Local development
 
-## Architecture Overview
+Use Node.js 22 and pnpm 9 (the repository is a pnpm workspace).
 
-```text
-User
-  |
-  v
-React / Next.js Frontend
-  |
-  v
-REST API / Backend Services
-  |
-  v
-Python + OpenCV Registration Engine
-  |
-  +--> Preprocessing and illumination normalization
-  +--> Multi-scale image processing
-  +--> Feature extraction and matching
-  +--> RANSAC geometric verification
-  +--> Transformation estimation and registration
-  |
-  v
-Registered Image + Correspondences + Quality Metrics
-  |
-  v
-Visualization, Experiment History, and Reports
+```bash
+pnpm install --frozen-lockfile
+pnpm --dir src/frontend dev
 ```
 
-## Evaluation Metrics
+Validation commands:
 
-LunarRegWorkbench is designed to evaluate registration using:
+```bash
+pnpm typecheck
+pnpm --filter @caffeine/template-frontend build
+pnpm test
+```
 
-- **RMSE (Root Mean Square Error):** Measures the magnitude of registration error for the evaluated points.
-- **Inlier count and inlier ratio:** Indicate how many matched points are consistent with the estimated geometric model.
-- **Reprojection error:** Measures the discrepancy between observed points and points projected by the transformation.
-- **Spatial coverage:** Indicates how widely correspondence points are distributed across the image.
-- **Scale, rotation, and processing time:** Help characterize the estimated alignment and computational cost.
+Backend development additionally requires the Motoko package manager (mops) and the project's configured Internet Computer environment.
 
-Metrics should be interpreted together; no single metric guarantees that an image is correctly registered.
+## Scientific interpretation
 
-## Future Scope
+RMSE and reprojection error are calculated from the accepted correspondences under the selected geometric model. Inlier ratio, spatial coverage, scale, and rotation provide complementary diagnostics; none alone proves scientific correctness. A successful software run is not a substitute for ground-truth validation or mission-product provenance checks.
 
-The architecture is intended to allow future experimentation with learned feature and matching methods such as **SuperPoint, LoFTR, and LightGlue**. These should be described as future extensions unless they have been integrated and tested in the current implementation. Further work may include broader sensor and dataset validation, performance optimization for large images, and optional GPU acceleration.
+## Future work
 
-## Intended Applications
-
-- Comparing lunar imagery across missions and sensors.
-- Supporting lunar surface analysis and visual inspection.
-- Evaluating image-registration methods under different imaging conditions.
-- Reproducible experiments and quantitative comparison of registration configurations.
-
-## Project Status
-
-The documented design describes the intended workflow and architecture. Feature availability may vary by prototype version; verify each feature against the current implementation before presenting it as completed.
-
-## Contributing
-
-Contributions, testing, and suggestions are welcome. Before contributing, document the setup steps, dependencies, supported input formats, and test procedure for the current codebase.
-
-## License
-
-Add the license selected for this project before distributing or accepting external contributions.
+Integrate a dedicated TIFF/GeoTIFF reader, add standards-based SIFT/ORB/AKAZE or learned feature pipelines, perform multi-scale feature detection, implement sub-pixel refinement, and validate against sourced cross-mission image pairs with documented ground truth.

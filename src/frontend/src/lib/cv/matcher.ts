@@ -10,11 +10,14 @@ export interface MatchOptions {
   ratioThreshold: number;
   /** Maximum number of matches to keep. */
   maxMatches: number;
+  /** Keep only mutual nearest-neighbour matches when enabled. */
+  crossCheck: boolean;
 }
 
 const DEFAULT_OPTIONS: MatchOptions = {
   ratioThreshold: 0.75,
   maxMatches: 500,
+  crossCheck: false,
 };
 
 /** Hamming distance between two binary descriptor vectors. */
@@ -35,6 +38,20 @@ export function matchDescriptors(
 ): Match[] {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const matches: Match[] = [];
+  const reverseBest = opts.crossCheck
+    ? reference.map((_, j) => {
+        let bestDistance = Number.POSITIVE_INFINITY;
+        let bestIndex = -1;
+        for (let i = 0; i < source.length; i++) {
+          const distance = hammingDistance(reference[j].values, source[i].values);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = i;
+          }
+        }
+        return bestIndex;
+      })
+    : null;
 
   for (let i = 0; i < source.length; i++) {
     // Find the two nearest neighbors in the reference set.
@@ -51,10 +68,12 @@ export function matchDescriptors(
         second = d;
       }
     }
-    if (bestIdx < 0) continue;
-    // Lowe's ratio test: reject ambiguous matches.
-    const ratio = second === Number.POSITIVE_INFINITY ? 0 : best / second;
+    if (bestIdx < 0 || second === Number.POSITIVE_INFINITY) continue;
+    // Lowe's ratio test requires two candidates. Treat a zero/zero tie as
+    // maximally ambiguous instead of allowing NaN to pass the threshold.
+    const ratio = second === 0 ? (best === 0 ? 1 : Number.POSITIVE_INFINITY) : best / second;
     if (ratio > opts.ratioThreshold) continue;
+    if (reverseBest && reverseBest[bestIdx] !== i) continue;
     matches.push({
       sourceIndex: i,
       referenceIndex: bestIdx,

@@ -131,6 +131,7 @@ export function runPipeline(input: EngineInput): EngineOutput {
   const matches = matchDescriptors(srcFeat.descriptors, refFeat.descriptors, {
     ratioThreshold: config.matching.ratioThreshold,
     maxMatches: Number(config.matching.maxMatches),
+    crossCheck: config.matching.crossCheck,
   });
   const rawPoints = matches.map((m) => ({
     source: {
@@ -184,12 +185,15 @@ export function runPipeline(input: EngineInput): EngineOutput {
     dof: model === "homography" ? 8 : model === "affine" ? 6 : 4,
   }));
   const recommendedModel = recommendModel(consistency);
-  const chosen = modelResults.get(recommendedModel)!;
+  // The workflow exposes an explicit transformation-model selector. Honor it
+  // rather than silently replacing the user's reproducible configuration.
+  const selectedModel = config.model;
+  const chosen = modelResults.get(selectedModel) ?? modelResults.get(recommendedModel)!;
   emit(
     onEvent,
     "geometric-verification",
     baseProgress("geometric-verification") + 0.5 / (PIPELINE_STAGES.length - 1),
-    `Recommended ${recommendedModel} model, ${chosen.inlierCount} inliers`,
+    `Selected ${selectedModel} model, ${chosen.inlierCount} inliers (automatic recommendation: ${recommendedModel})`,
   );
 
   // Stage 7: Spatial optimization (uniform grid distribution).
@@ -268,7 +272,7 @@ export function runPipeline(input: EngineInput): EngineOutput {
     transformationMatrix: chosen.matrix,
     correspondences: gridResult.correspondences,
     metrics,
-    recommendedModel,
+    recommendedModel: selectedModel,
     registeredImageDataUrl,
     overlayImageDataUrl,
     differenceImageDataUrl,

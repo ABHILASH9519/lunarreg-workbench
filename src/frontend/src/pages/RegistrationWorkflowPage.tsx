@@ -63,24 +63,22 @@ import {
   ScanSearch,
   Settings2,
   SlidersHorizontal,
-  Sparkles,
   Upload,
   Workflow,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type ModelChoice = TransformationModel | "recommended";
+type ModelChoice = TransformationModel;
 
 const DETECTOR_OPTIONS: Array<{ value: FeatureDetector; label: string }> = [
-  { value: FeatureDetector.orb, label: "ORB" },
-  { value: FeatureDetector.sift, label: "SIFT" },
-  { value: FeatureDetector.brisk, label: "BRISK" },
-  { value: FeatureDetector.kaze, label: "KAZE" },
+  {
+    value: FeatureDetector.orb,
+    label: "ORB-style (FAST corners + BRIEF descriptors)",
+  },
 ];
 
 const MODEL_OPTIONS: Array<{ value: ModelChoice; label: string }> = [
-  { value: "recommended", label: "Recommended Model" },
   { value: TransformationModel.similarity, label: "Similarity" },
   { value: TransformationModel.affine, label: "Affine" },
   { value: TransformationModel.homography, label: "Homography" },
@@ -88,7 +86,9 @@ const MODEL_OPTIONS: Array<{ value: ModelChoice; label: string }> = [
 
 const GRID_OPTIONS: SpatialGridSize[] = [4, 8, 16];
 
-const ACCEPTED_TYPES = ["image/tiff", "image/png", "image/jpeg", "image/tif"];
+// Native browser decoding is reliable for PNG and JPEG. TIFF/GeoTIFF are
+// intentionally not advertised until a dedicated TIFF decoder is integrated.
+const ACCEPTED_TYPES = ["image/png", "image/jpeg"];
 
 function formatPct(value: number | undefined | null): string {
   if (value === undefined || value === null) return "N/A";
@@ -167,7 +167,7 @@ export default function RegistrationWorkflowPage() {
   const [maxFeatures, setMaxFeatures] = useState(800);
   const [ratioThreshold, setRatioThreshold] = useState(0.75);
   const [maxMatches, setMaxMatches] = useState(500);
-  const [modelChoice, setModelChoice] = useState<ModelChoice>("recommended");
+  const [modelChoice, setModelChoice] = useState<ModelChoice>(config.model);
   const [gridChoice, setGridChoice] = useState<SpatialGridSize>(8);
 
   const sourceInputRef = useRef<HTMLInputElement>(null);
@@ -199,7 +199,7 @@ export default function RegistrationWorkflowPage() {
         ratioThreshold,
         maxMatches: BigInt(maxMatches),
       },
-      model: modelChoice === "recommended" ? current.model : modelChoice,
+      model: modelChoice,
     };
     setConfig(next);
   }, [
@@ -237,8 +237,12 @@ export default function RegistrationWorkflowPage() {
     (file: File, role: "source" | "reference") => {
       if (!ACCEPTED_TYPES.includes(file.type)) {
         setUploadError(
-          `Unsupported format "${file.type || "unknown"}". Use TIFF, GeoTIFF, PNG, or JPG.`,
+          `Unsupported format "${file.type || "unknown"}". Use PNG or JPG/JPEG. TIFF and GeoTIFF decoding is not yet integrated.`,
         );
+        return;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        setUploadError("Image exceeds the 20 MB per-file limit. Resize or compress it before upload.");
         return;
       }
       setUploadError(null);
@@ -555,8 +559,8 @@ export default function RegistrationWorkflowPage() {
               </p>
             )}
             <p className="text-muted-foreground mt-3 text-xs">
-              Accepted formats: TIFF, GeoTIFF, PNG, JPG. Uploaded images are
-              labeled USER DATA and processed entirely in your browser.
+              Accepted formats: PNG and JPG/JPEG (max 20 MB each). TIFF/GeoTIFF decoding
+              is not yet integrated. USER DATA is processed in your browser.
             </p>
           </TabsContent>
         </Tabs>
@@ -726,17 +730,6 @@ export default function RegistrationWorkflowPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {modelChoice === "recommended" && (
-                  <p className="text-muted-foreground mt-1.5 flex items-start gap-1.5 text-xs">
-                    <Sparkles
-                      className="mt-0.5 size-3.5 shrink-0 text-warning"
-                      aria-hidden="true"
-                    />
-                    The recommended model is chosen from actual correspondence
-                    and geometric-consistency metrics (inlier ratio,
-                    reprojection error, degrees of freedom) — never hard-coded.
-                  </p>
-                )}
               </Field>
               <Field label={`Spatial grid (${gridChoice}×${gridChoice})`}>
                 <fieldset className="flex gap-2" aria-label="Spatial grid size">
@@ -969,7 +962,7 @@ export default function RegistrationWorkflowPage() {
               <MetricCard
                 label="Model"
                 value={result.recommendedModel}
-                explanation="The transformation model fitted to the correspondences. Recommended model is selected from actual geometric-consistency metrics across Similarity, Affine, and Homography candidates."
+                explanation="The selected Similarity, Affine, or Homography model is fitted to the verified correspondences. Candidate models are also compared for diagnostics."
               />
             </div>
 
@@ -1009,7 +1002,7 @@ export default function RegistrationWorkflowPage() {
                 <ExplainRow
                   label="Transformation model"
                   value={result.recommendedModel}
-                  detail="Chosen from actual inlier ratio and reprojection error across Similarity, Affine, and Homography candidates (Occam-preferring)."
+                  detail="The model selected in the workflow settings is used for registration; other candidates are evaluated for comparison."
                 />
                 <ExplainRow
                   label="Matches accepted / rejected"
@@ -1113,7 +1106,7 @@ function UploadSlot({
           <span className="text-sm">
             Choose {slot === "source" ? "Source" : "Reference"} image
           </span>
-          <span className="text-xs">TIFF · GeoTIFF · PNG · JPG</span>
+          <span className="text-xs">PNG · JPG/JPEG · max 20 MB</span>
         </button>
       )}
       <input

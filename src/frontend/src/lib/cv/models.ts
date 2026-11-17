@@ -29,25 +29,41 @@ export function applyModel(
 /** Estimate a similarity transform (scale + rotation + translation) from >=2 points. */
 export function estimateSimilarity(points: ModelPoints): Matrix3x3 | null {
   if (points.length < 2) return null;
-  // Least squares: solve for [a, b, c, d, e, f] with constraint a^2+b^2 = d^2+e^2.
-  // Use the closed-form Umeyama-style solution on the first two points.
-  const p0 = points[0].source;
-  const p1 = points[1].source;
-  const q0 = points[0].reference;
-  const q1 = points[1].reference;
-  const sx = p1.x - p0.x;
-  const sy = p1.y - p0.y;
-  const tx = q1.x - q0.x;
-  const ty = q1.y - q0.y;
-  const len2 = sx * sx + sy * sy;
-  if (len2 < 1e-9) return null;
-  // Rotation matrix mapping source delta to reference delta, scaled.
-  const a = (sx * tx + sy * ty) / len2;
-  const b = (sx * ty - sy * tx) / len2;
+  let meanX = 0;
+  let meanY = 0;
+  let meanU = 0;
+  let meanV = 0;
+  for (const point of points) {
+    meanX += point.source.x;
+    meanY += point.source.y;
+    meanU += point.reference.x;
+    meanV += point.reference.y;
+  }
+  const n = points.length;
+  meanX /= n;
+  meanY /= n;
+  meanU /= n;
+  meanV /= n;
+
+  let variance = 0;
+  let dot = 0;
+  let cross = 0;
+  for (const point of points) {
+    const x = point.source.x - meanX;
+    const y = point.source.y - meanY;
+    const u = point.reference.x - meanU;
+    const v = point.reference.y - meanV;
+    variance += x * x + y * y;
+    dot += x * u + y * v;
+    cross += x * v - y * u;
+  }
+  if (variance < 1e-9) return null;
+  const a = dot / variance;
+  const b = cross / variance;
   const d = -b;
   const e = a;
-  const c = q0.x - (a * p0.x + b * p0.y);
-  const f = q0.y - (d * p0.x + e * p0.y);
+  const c = meanU - a * meanX - b * meanY;
+  const f = meanV - d * meanX - e * meanY;
   return [a, b, c, d, e, f, 0, 0, 1];
 }
 
@@ -128,56 +144,84 @@ export function estimateAffine(points: ModelPoints): Matrix3x3 | null {
 /** Estimate a homography (8 DOF) from >=4 points via DLT. */
 export function estimateHomography(points: ModelPoints): Matrix3x3 | null {
   if (points.length < 4) return null;
-  // Build the 2n x 9 DLT matrix.
-  const rows: number[][] = [];
-  for (const p of points) {
-    const x = p.source.x;
-    const y = p.source.y;
-    const u = p.reference.x;
-    const v = p.reference.y;
-    rows.push([-x, -y, -1, 0, 0, 0, u * x, u * y, u]);
-    rows.push([0, 0, 0, -x, -y, -1, v * x, v * y, v]);
-  }
-  // Solve via SVD of the 2n x 9 matrix (power iteration on A^T A).
+  // Build the symmetric normal matrix A^T A for the DLT system.
   const ata = new Array<number>(81).fill(0);
-  for (const row of rows) {
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        ata[i * 9 + j] += row[i] * row[j];
+  for (const point of points) {
+    const { x, y } = point.source;
+    const { x: u, y: v } = point.reference;
+    const rows = [
+      [-x, -y, -1, 0, 0, 0, u * x, u * y, u],
+      [0, 0, 0, -x, -y, -1, v * x, v * y, v],
+    ];
+    for (const row of rows) {
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) ata[i * 9 + j] += row[i] * row[j];
       }
     }
   }
-  // Power iteration to find the smallest eigenvector of A^T A.
-  let v = new Array<number>(9).fill(1);
-  v[8] = 1;
-  for (let iter = 0; iter < 60; iter++) {
-    const next = new Array<number>(9).fill(0);
+
+  // Jacobi eigensolver for a real symmetric 9x9 matrix. DLT needs the
+  // eigenvector of the smallest eigenvalue (the null-space direction).
+  const eigenvectors = new Array<number>(81).fill(0);
+  for (let i = 0; i < 9; i++) eigenvectors[i * 9 + i] = 1;
+  for (let iteration = 0; iteration < 1200; iteration++) {
+    let p = 0;
+    let q = 1;
+    let largest = 0;
     for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        next[i] += ata[i * 9 + j] * v[j];
+      for (let j = i + 1; j < 9; j++) {
+        const value = Math.abs(ata[i * 9 + j]);
+        if (value > largest) {
+          largest = value;
+          p = i;
+          q = j;
+        }
       }
     }
-    // Shift by the largest eigenvalue to converge to the smallest.
-    let maxAbs = 0;
-    for (let i = 0; i < 9; i++) maxAbs = Math.max(maxAbs, Math.abs(next[i]));
-    if (maxAbs < 1e-12) break;
-    for (let i = 0; i < 9; i++) next[i] /= maxAbs;
-    v = next;
+    if (largest < 1e-10) break;
+    const app = ata[p * 9 + p];
+    const aqq = ata[q * 9 + q];
+    const apq = ata[p * 9 + q];
+    if (Math.abs(apq) < 1e-15) continue;
+    const tau = (aqq - app) / (2 * apq);
+    const t = (tau >= 0 ? 1 : -1) / (Math.abs(tau) + Math.sqrt(1 + tau * tau));
+    const cosine = 1 / Math.sqrt(1 + t * t);
+    const sine = t * cosine;
+
+    for (let k = 0; k < 9; k++) {
+      if (k === p || k === q) continue;
+      const akp = ata[k * 9 + p];
+      const akq = ata[k * 9 + q];
+      const nextP = cosine * akp - sine * akq;
+      const nextQ = sine * akp + cosine * akq;
+      ata[k * 9 + p] = nextP;
+      ata[p * 9 + k] = nextP;
+      ata[k * 9 + q] = nextQ;
+      ata[q * 9 + k] = nextQ;
+    }
+    ata[p * 9 + p] = app - t * apq;
+    ata[q * 9 + q] = aqq + t * apq;
+    ata[p * 9 + q] = 0;
+    ata[q * 9 + p] = 0;
+
+    for (let k = 0; k < 9; k++) {
+      const vkp = eigenvectors[k * 9 + p];
+      const vkq = eigenvectors[k * 9 + q];
+      eigenvectors[k * 9 + p] = cosine * vkp - sine * vkq;
+      eigenvectors[k * 9 + q] = sine * vkp + cosine * vkq;
+    }
   }
-  // v is now the eigenvector for the smallest eigenvalue (approximately).
-  const h = v;
-  const scale = h[8] === 0 ? 1 : h[8];
-  return [
-    h[0] / scale,
-    h[1] / scale,
-    h[2] / scale,
-    h[3] / scale,
-    h[4] / scale,
-    h[5] / scale,
-    h[6] / scale,
-    h[7] / scale,
-    1,
-  ];
+
+  let smallestIndex = 0;
+  for (let i = 1; i < 9; i++) {
+    if (ata[i * 9 + i] < ata[smallestIndex * 9 + smallestIndex]) smallestIndex = i;
+  }
+  const h = Array.from({ length: 9 }, (_, row) => eigenvectors[row * 9 + smallestIndex]);
+  const scale = Math.abs(h[8]) > 1e-9 ? h[8] : Math.max(...h.map(Math.abs));
+  if (!Number.isFinite(scale) || Math.abs(scale) < 1e-12) return null;
+  const normalized = h.map((value) => value / scale);
+  if (normalized.some((value) => !Number.isFinite(value))) return null;
+  return normalized as Matrix3x3;
 }
 
 /** Decompose a similarity/affine matrix into scale, rotation, translation. */

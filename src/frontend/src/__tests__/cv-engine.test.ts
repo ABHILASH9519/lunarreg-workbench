@@ -154,6 +154,20 @@ describe("ransac", () => {
     expect(result.inlierCount).toBe(0);
     expect(result.accepted).toBe(false);
   });
+
+  it("rejects fewer points than the model's minimum sample without hanging", () => {
+    const points = [
+      { source: { x: 0, y: 0 }, reference: { x: 2, y: 3 } },
+      { source: { x: 10, y: 0 }, reference: { x: 12, y: 3 } },
+      { source: { x: 0, y: 10 }, reference: { x: 2, y: 13 } },
+    ];
+    const affine = ransac("affine" as TransformationModel, points.slice(0, 2), {});
+    const homography = ransac("homography" as TransformationModel, points, {});
+    expect(affine.accepted).toBe(false);
+    expect(affine.inlierCount).toBe(0);
+    expect(homography.accepted).toBe(false);
+    expect(homography.inlierCount).toBe(0);
+  });
 });
 
 describe("model estimation", () => {
@@ -172,6 +186,32 @@ describe("model estimation", () => {
     expect(estimateSimilarity([])).toBeNull();
     expect(estimateAffine([])).toBeNull();
     expect(estimateHomography([])).toBeNull();
+  });
+
+  it("estimates similarity using all supplied correspondences", () => {
+    const m = estimateSimilarity([
+      { source: { x: 0, y: 0 }, reference: { x: 5, y: 7 } },
+      { source: { x: 10, y: 0 }, reference: { x: 15, y: 7 } },
+      { source: { x: 0, y: 10 }, reference: { x: 5, y: 17 } },
+      { source: { x: 10, y: 10 }, reference: { x: 15, y: 17 } },
+    ]);
+    expect(m).not.toBeNull();
+    const [x, y] = applyModel("similarity" as TransformationModel, m!, 4, 6);
+    expect(x).toBeCloseTo(9, 4);
+    expect(y).toBeCloseTo(13, 4);
+  });
+
+  it("estimates a homography from four non-collinear correspondences", () => {
+    const m = estimateHomography([
+      { source: { x: 0, y: 0 }, reference: { x: 5, y: 7 } },
+      { source: { x: 10, y: 0 }, reference: { x: 15, y: 7 } },
+      { source: { x: 10, y: 10 }, reference: { x: 15, y: 17 } },
+      { source: { x: 0, y: 10 }, reference: { x: 5, y: 17 } },
+    ]);
+    expect(m).not.toBeNull();
+    const [x, y] = applyModel("homography" as TransformationModel, m!, 4, 6);
+    expect(x).toBeCloseTo(9, 3);
+    expect(y).toBeCloseTo(13, 3);
   });
 });
 

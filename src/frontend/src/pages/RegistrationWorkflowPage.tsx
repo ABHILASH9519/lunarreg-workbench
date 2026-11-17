@@ -70,17 +70,16 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type ModelChoice = TransformationModel | "recommended";
+type ModelChoice = TransformationModel;
 
 const DETECTOR_OPTIONS: Array<{ value: FeatureDetector; label: string }> = [
-  { value: FeatureDetector.orb, label: "ORB" },
-  { value: FeatureDetector.sift, label: "SIFT" },
-  { value: FeatureDetector.brisk, label: "BRISK" },
-  { value: FeatureDetector.kaze, label: "KAZE" },
+  {
+    value: FeatureDetector.orb,
+    label: "ORB-style (FAST corners + BRIEF descriptors)",
+  },
 ];
 
 const MODEL_OPTIONS: Array<{ value: ModelChoice; label: string }> = [
-  { value: "recommended", label: "Recommended Model" },
   { value: TransformationModel.similarity, label: "Similarity" },
   { value: TransformationModel.affine, label: "Affine" },
   { value: TransformationModel.homography, label: "Homography" },
@@ -167,7 +166,7 @@ export default function RegistrationWorkflowPage() {
   const [maxFeatures, setMaxFeatures] = useState(800);
   const [ratioThreshold, setRatioThreshold] = useState(0.75);
   const [maxMatches, setMaxMatches] = useState(500);
-  const [modelChoice, setModelChoice] = useState<ModelChoice>("recommended");
+  const [modelChoice, setModelChoice] = useState<ModelChoice>(config.model);
   const [gridChoice, setGridChoice] = useState<SpatialGridSize>(8);
 
   const sourceInputRef = useRef<HTMLInputElement>(null);
@@ -199,7 +198,7 @@ export default function RegistrationWorkflowPage() {
         ratioThreshold,
         maxMatches: BigInt(maxMatches),
       },
-      model: modelChoice === "recommended" ? current.model : modelChoice,
+      model: modelChoice,
     };
     setConfig(next);
   }, [

@@ -241,9 +241,7 @@ export function buildReportDocument(
         )}
 
         <Text style={styles.note}>
-          DEMO/SAMPLE DATA — results are computed in-browser on synthetic or
-          user-uploaded imagery and are not official Chandrayaan-2/ISRO
-          products.
+          Synthetic benchmark imagery is not an official mission product. Reported metrics are calculated from the selected input images and accepted correspondences.
         </Text>
       </Page>
     </Document>

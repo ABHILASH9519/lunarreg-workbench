@@ -4,8 +4,8 @@ import type { DataTableColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
-import { IntegrationStatusBadge } from "@/components/IntegrationStatusBadge";
-import type { IntegrationStatus } from "@/components/IntegrationStatusBadge";
+import { IntegrationStatusBadge } from "@/components/PrototypeStatusBadge";
+import type { IntegrationStatus } from "@/components/PrototypeStatusBadge";
 import { SectionCard } from "@/components/SectionCard";
 import { generateAllDemoPairs } from "@/lib/demo/demo-pairs";
 import type { DemoPair, DemoPairMetadata } from "@/lib/types";
@@ -262,7 +262,7 @@ export default function DatasetExplorerPage() {
     },
     {
       header: "Origin",
-      cell: () => <DataOriginBadge origin="benchmark" />,
+      cell: () => <DataOriginBadge origin="demo" />,
     },
   ];
 
@@ -300,7 +300,7 @@ export default function DatasetExplorerPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-2">
-            <DataOriginBadge origin="benchmark" />
+            <DataOriginBadge origin="demo" />
             <IntegrationStatusBadge status="pending" />
             <span className="text-muted-foreground font-mono text-[11px]">
               Official dataset connectivity: Integration required

@@ -446,7 +446,7 @@ export default function ExperimentLabPage() {
               htmlFor="experiment-lab-pair"
               className="text-muted-foreground text-xs font-medium uppercase tracking-wider"
             >
-              Demo pair
+              Benchmark pair
             </label>
             {pairs.length === 0 ? (
               <Button

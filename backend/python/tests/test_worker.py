@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import pytest
 from app.main import decode, make_detector, estimate

@@ -412,7 +412,7 @@ export default function RegistrationWorkflowPage() {
       {/* Step 1 — Input selection */}
       <SectionCard
         title="1 · Input Selection"
-        description="Choose a bundled DEMO pair or upload your own Source (Moving) and Reference (Fixed) images."
+        description="Choose a generated benchmark pair or upload your own Source (Moving) and Reference (Fixed) images."
         action={
           <Badge
             className="border-border bg-muted text-muted-foreground font-mono text-[10px] uppercase tracking-widest"
@@ -427,7 +427,7 @@ export default function RegistrationWorkflowPage() {
           <TabsList data-ocid="workflow.input_tabs">
             <TabsTrigger value="demo" data-ocid="workflow.tab.demo">
               <Database className="size-4" aria-hidden="true" />
-              Demo Pairs
+              Benchmark Pairs
             </TabsTrigger>
             <TabsTrigger value="user" data-ocid="workflow.tab.user">
               <HardDrive className="size-4" aria-hidden="true" />
@@ -442,7 +442,7 @@ export default function RegistrationWorkflowPage() {
               <EmptyState
                 icon={Database}
                 title="No benchmark pairs available"
-                description="Bundled synthetic lunar sample pairs could not be generated."
+                description="The generated lunar benchmark pairs could not be prepared."
                 actionLabel="Retry"
                 onAction={() => void loadPairs()}
               />

@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS registration_jobs (id TEXT PRIMARY KEY,status TEXT NOT NULL CHECK(status IN ('processing','completed','failed')),created_at TIMESTAMPTZ NOT NULL,updated_at TIMESTAMPTZ NOT NULL,source_name TEXT NOT NULL,reference_name TEXT NOT NULL,config JSONB NOT NULL DEFAULT '{}'::jsonb,result JSONB,error TEXT);
+CREATE INDEX IF NOT EXISTS registration_jobs_created_at_idx ON registration_jobs(created_at DESC);

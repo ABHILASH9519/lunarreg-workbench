@@ -81,3 +81,12 @@ RMSE and reprojection error are calculated from the accepted correspondences und
 ## Future work
 
 Integrate a dedicated TIFF/GeoTIFF reader, add standards-based SIFT/ORB/AKAZE or learned feature pipelines, perform multi-scale feature detection, implement sub-pixel refinement, and validate against sourced cross-mission image pairs with documented ground truth.
+
+
+## Go + Python backend migration (feature branch)
+
+The branch feat/go-python-backend-migration introduces a Go REST API, PostgreSQL job persistence and a private Python/OpenCV worker. The intended backend split is Go 75–80% and Python 15–20%; these are architecture targets, not measured line-count claims. The React/TypeScript frontend remains the UI layer.
+
+See backend/README.md for service boundaries, endpoints and current limitations. A local backend stack can be started with docker compose -f docker-compose.backend.yml up --build after reviewing the development-only database password. The API is bound to localhost; it is not production-authenticated and must not be exposed publicly.
+
+**Migration is in progress:** current frontend hooks still use the Internet Computer/Motoko actor and browser-side TypeScript CV pipeline. Frontend REST integration, verified user authentication, durable asynchronous processing, GeoTIFF georeferencing, multi-octave processing, sub-pixel refinement and end-to-end acceptance testing remain outstanding. Do not interpret this branch as a completed production migration.

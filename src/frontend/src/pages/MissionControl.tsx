@@ -231,7 +231,7 @@ export default function MissionControlPage() {
           </button>
 
           <button
-            data-ocid="quick_action.run_demo"
+            data-ocid="quick_action.run_registration"
             type="button"
             onClick={() => navigate({ to: "/demo" })}
             className="group flex items-center gap-3 rounded-xl border bg-card p-4 text-left shadow-subtle transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
@@ -241,7 +241,7 @@ export default function MissionControlPage() {
             </span>
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="font-display text-sm font-semibold">
-                Run Demo
+                Run Guided Registration
               </span>
               <span className="text-muted-foreground text-xs">
                 Launch a bundled synthetic benchmark pair

@@ -42,9 +42,9 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
- * DemoModePage: the SIH Presentation/Demo Mode flow. A guided 3–5 minute
+ * DemoModePage: the SIH Presentation/Guided Workflow flow. A guided 3–5 minute
  * walkthrough — Overview → Scenario → Run Pipeline → Results — that runs the
- * real in-browser CV pipeline on bundled DEMO/SAMPLE pairs. Every metric is
+ * real in-browser CV pipeline on bundled synthetic benchmark pairs. Every metric is
  * computed from actual pixel data; nothing is fabricated. The full technical
  * workbench stays reachable via the Correspondence/Registration Viewers and
  * the "Full Workbench" exit.
@@ -65,7 +65,7 @@ const FLOW: Array<{ title: string; description: string }> = [
     description: "You are here — the guided presentation flow.",
   },
   {
-    title: "Select a Demo Scenario",
+    title: "Select a Benchmark Scenario",
     description: "Sun Angle, Scale, Viewpoint, or Multi-Modal variation.",
   },
   {
@@ -214,7 +214,7 @@ export default function DemoModePage() {
 
   const [step, setStep] = useState<DemoStep>(1);
 
-  // Enter demo mode and load the bundled pairs on mount.
+  // Enter guided workflow and load the bundled pairs on mount.
   useEffect(() => {
     setActive(true);
     void loadPairs();
@@ -282,10 +282,10 @@ export default function DemoModePage() {
             </span>
             <div className="flex flex-col">
               <h1 className="font-display text-xl font-semibold tracking-tight">
-                SIH Presentation Mode
+                Guided Registration Workflow
               </h1>
               <p className="text-muted-foreground text-sm">
-                Guided 3–5 minute demo flow
+                Guided registration workflow
               </p>
             </div>
           </div>
@@ -433,13 +433,13 @@ function OverviewStep({ onBegin }: OverviewStepProps) {
               <Satellite className="size-5" aria-hidden="true" />
             </span>
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              SIH · Live Demonstration
+              SIH · Guided Registration
             </span>
           </div>
 
           <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-5xl">
             Lunar Image Registration{" "}
-            <span className="text-gradient-gold">Live Demo</span>
+            <span className="text-gradient-gold">Guided Registration</span>
           </h1>
 
           <p className="max-w-xl text-muted-foreground text-sm leading-relaxed md:text-base">
@@ -452,7 +452,7 @@ function OverviewStep({ onBegin }: OverviewStepProps) {
           <div className="flex flex-wrap items-center gap-2">
             <DataOriginBadge origin="demo" />
             <span className="text-muted-foreground font-mono text-[11px]">
-              Synthetic DEMO/SAMPLE DATA — not official ISRO data
+              Synthetic SYNTHETIC BENCHMARK — not official ISRO data
             </span>
           </div>
         </div>
@@ -499,7 +499,7 @@ function OverviewStep({ onBegin }: OverviewStepProps) {
       <div className="relative mt-6 flex items-start gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <p>
-          Scientific integrity: all imagery is synthetic DEMO/SAMPLE DATA and is
+          Scientific integrity: all imagery is synthetic SYNTHETIC BENCHMARK and is
           never represented as official Chandrayaan-2/ISRO data. All metrics
           (RMSE, inlier ratio, spatial coverage) are computed in-browser from
           real pixel data — never fabricated.
@@ -532,8 +532,8 @@ function ScenarioStep({
 }: ScenarioStepProps) {
   return (
     <SectionCard
-      title="Select a Demo Scenario"
-      description="Each scenario loads a bundled DEMO/SAMPLE pair engineered for a specific registration challenge."
+      title="Select a Benchmark Scenario"
+      description="Each scenario loads a bundled synthetic benchmark pair engineered for a specific registration challenge."
       action={
         <Badge
           data-ocid="demo.scenario_badge"
@@ -545,11 +545,11 @@ function ScenarioStep({
       }
     >
       {loading ? (
-        <LoadingState label="Generating demo pairs…" rows={3} />
+        <LoadingState label="Generating benchmark pairs…" rows={3} />
       ) : pairs.length === 0 ? (
         <EmptyState
           icon={Database}
-          title="No demo pairs available"
+          title="No benchmark pairs available"
           description="Bundled synthetic lunar sample pairs could not be generated."
           actionLabel="Retry"
           onAction={onLoadPairs}
@@ -715,7 +715,7 @@ function RunStep({
   return (
     <SectionCard
       title="Run the CV Pipeline"
-      description="Execute the 11-stage registration pipeline on the selected DEMO/SAMPLE pair."
+      description="Execute the 11-stage registration pipeline on the selected synthetic benchmark pair."
       action={
         <Badge
           data-ocid="demo.run_badge"
@@ -730,7 +730,7 @@ function RunStep({
         <EmptyState
           icon={Database}
           title="No scenario selected"
-          description="Choose a demo scenario to load its bundled DEMO/SAMPLE pair into the pipeline."
+          description="Choose a demo scenario to load its bundled synthetic benchmark pair into the pipeline."
           actionLabel="Select Scenario"
           onAction={onPickScenario}
         />
@@ -1061,7 +1061,7 @@ function ResultsStep({
               />
               <ExplainRow
                 label="Sub-pixel refinement"
-                value="Prototype/Integration Pending"
+                value="Integration required"
                 detail="Sub-pixel refinement is not available in-browser; results are pixel-level. See the warning in the processing console."
                 pending
               />
@@ -1081,7 +1081,7 @@ function ResultsStep({
             </Button>
             {selectedPair && (
               <span className="text-muted-foreground font-mono text-[11px]">
-                {selectedPair.metadata.name} · DEMO/SAMPLE DATA
+                {selectedPair.metadata.name} · SYNTHETIC BENCHMARK
               </span>
             )}
             <Button
@@ -1179,7 +1179,7 @@ function ExplainRow({ label, value, detail, pending }: ExplainRowProps) {
             className="border-warning/40 bg-warning/15 text-warning font-mono text-[10px] uppercase tracking-wider"
             data-ocid="demo.pending_badge"
           >
-            Prototype/Integration Pending
+            Integration required
           </Badge>
         ) : (
           <span className="font-mono text-xs font-semibold text-foreground">

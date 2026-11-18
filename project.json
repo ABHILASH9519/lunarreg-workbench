@@ -1,20 +1,27 @@
 {
-  "overview": "A lunar image registration and correspondence analysis workbench for space technology, letting users register multi-modal lunar imagery (OHRC, TMC-2, IIRS, LRO NAC, SELENE) with a real in-browser computer vision pipeline, scientific integrity, and persistent experiment history.",
+  "overview": "A cross-mission lunar image registration and quantitative correspondence analysis platform for Chandrayaan-2, NASA LRO and JAXA SELENE imagery, with a React/TypeScript interface and a Go-first backend architecture supported by a Python/OpenCV computer-vision worker.",
   "features": [
-    "Run a real in-browser image registration pipeline on demo lunar image pairs",
-    "Compare Similarity, Affine, and Homography transformation models with recommended-model selection",
-    "View correspondence points with inliers/outliers, spatial distribution, and match quality filtering",
-    "Analyze sun-angle, scale, and multi-modal robustness of registrations",
-    "Persist per-user experiment history and reproduce any job from its stored configuration",
-    "Export full results packages including registered images, correspondence data, metrics, and PDF reports"
+    "Register moving and reference lunar images across illumination, scale, viewpoint, resolution and sensor variations",
+    "Extract and match local features with descriptor filtering and geometric verification",
+    "Estimate Similarity, Affine and Homography transforms using RANSAC",
+    "Visualize correspondences, inliers, outliers, registered imagery, overlays and difference maps",
+    "Calculate RMSE, reprojection error, inlier ratio, spatial coverage, scale and rotation from actual correspondences",
+    "Compare model configurations and preserve reproducible experiment records",
+    "Export registration results, metrics, correspondence data and technical reports"
   ],
-  "category": "productivity",
+  "category": "developer-tools",
   "tags": [
     "space-technology",
-    "image-registration",
+    "lunar-imagery",
     "computer-vision",
-    "scientific",
-    "lunar"
+    "image-registration",
+    "opencv",
+    "golang",
+    "python",
+    "scientific-computing",
+    "chandrayaan-2",
+    "lro",
+    "selene"
   ],
-  "last_updated": "2026-09-01T07:44:04.776Z"
+  "last_updated": "2026-11-18T00:00:00.000Z"
 }

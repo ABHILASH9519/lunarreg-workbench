@@ -30,7 +30,7 @@ import {
  * MissionControlPage: the primary landing experience for the LunarReg
  * Workbench. Presents the mission identity, quick actions, live telemetry
  * stats, recent experiments, and a system status panel that distinguishes
- * functional in-browser components from prototype/pending ones.
+ * functional in-browser components from not-yet-integrated ones.
  */
 
 const SUPPORTED_SENSORS = ["OHRC", "TMC-2", "IIRS", "LRO NAC", "SELENE"];
@@ -157,7 +157,7 @@ export default function MissionControlPage() {
             <div className="flex flex-wrap items-center gap-2">
               <DataOriginBadge origin="demo" />
               <span className="text-muted-foreground font-mono text-[11px]">
-                Synthetic DEMO/SAMPLE DATA — not official ISRO data
+                Synthetic SYNTHETIC BENCHMARK — not official ISRO data
               </span>
             </div>
           </div>
@@ -244,7 +244,7 @@ export default function MissionControlPage() {
                 Run Demo
               </span>
               <span className="text-muted-foreground text-xs">
-                Launch a bundled DEMO/SAMPLE pair
+                Launch a bundled synthetic benchmark pair
               </span>
             </span>
             <ArrowRight

@@ -4,10 +4,10 @@ import type { DataTableColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
-import { PrototypeStatusBadge } from "@/components/PrototypeStatusBadge";
-import type { PrototypeStatus } from "@/components/PrototypeStatusBadge";
+import { IntegrationStatusBadge } from "@/components/IntegrationStatusBadge";
+import type { IntegrationStatus } from "@/components/IntegrationStatusBadge";
 import { SectionCard } from "@/components/SectionCard";
-import { generateAllDemoPairs } from "@/lib/demo/demo-pairs";
+import { generateAllDemoPairs } from "@/lib/benchmark/benchmark-pairs";
 import type { DemoPair, DemoPairMetadata } from "@/lib/types";
 import { Cpu, Database, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 // Sensor catalog — reference instrument characteristics for the planned
 // modular integration layer. These are public instrument specifications
 // compiled for the future official-dataset connector; NO live mission data is
-// connected. Every sensor is marked Prototype/Integration Pending.
+// connected. Every sensor is marked Integration required.
 // ---------------------------------------------------------------------------
 
 interface SensorProfile {
@@ -83,19 +83,19 @@ const SENSOR_PROFILES: SensorProfile[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Prototype status — what is functional in-browser today vs. planned for
+// Integration status — what is functional in-browser today vs. planned for
 // future scientific/backend integration.
 // ---------------------------------------------------------------------------
 
 interface CapabilityStatus {
   name: string;
   description: string;
-  status: PrototypeStatus;
+  status: IntegrationStatus;
 }
 
 const CAPABILITY_STATUS: CapabilityStatus[] = [
   {
-    name: "Bundled DEMO/SAMPLE Pairs",
+    name: "Synthetic Benchmark Pairs",
     description:
       "Five synthetic lunar-like pairs (OHRC, TMC-2, IIRS, LRO NAC, SELENE) bundled in-browser for the registration pipeline.",
     status: "functional",
@@ -103,7 +103,7 @@ const CAPABILITY_STATUS: CapabilityStatus[] = [
   {
     name: "In-browser Registration Pipeline",
     description:
-      "Feature detection, matching, geometric verification and RMSE evaluation run entirely in the browser on demo data.",
+      "Feature detection, matching, geometric verification and RMSE evaluation run entirely in the browser on benchmark data.",
     status: "functional",
   },
   {
@@ -115,7 +115,7 @@ const CAPABILITY_STATUS: CapabilityStatus[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Demo pair generation state (real in-browser canvas work that can fail).
+// Benchmark pair generation state (real in-browser canvas work that can fail).
 // ---------------------------------------------------------------------------
 
 type PairsState =
@@ -165,7 +165,7 @@ export default function DatasetExplorerPage() {
         message:
           error instanceof Error
             ? error.message
-            : "Demo pair generation failed in this browser.",
+            : "Benchmark pair generation failed in this browser.",
       });
     }
   }, []);
@@ -210,7 +210,7 @@ export default function DatasetExplorerPage() {
     },
     {
       header: "Integration",
-      cell: () => <PrototypeStatusBadge status="pending" />,
+      cell: () => <IntegrationStatusBadge status="pending" />,
     },
   ];
 
@@ -262,7 +262,7 @@ export default function DatasetExplorerPage() {
     },
     {
       header: "Origin",
-      cell: () => <DataOriginBadge origin="demo" />,
+      cell: () => <DataOriginBadge origin="benchmark" />,
     },
   ];
 
@@ -293,17 +293,17 @@ export default function DatasetExplorerPage() {
           </h1>
 
           <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed md:text-base">
-            Catalog of supported lunar sensors and the bundled DEMO/SAMPLE pairs
+            Catalog of supported lunar sensors and the bundled synthetic benchmark pairs
             available for in-browser registration. Official Chandrayaan-2, LRO
             NAC and SELENE dataset access is prepared behind a modular
             integration layer and is not yet connected.
           </p>
 
           <div className="flex flex-wrap items-center gap-2">
-            <DataOriginBadge origin="demo" />
-            <PrototypeStatusBadge status="pending" />
+            <DataOriginBadge origin="benchmark" />
+            <IntegrationStatusBadge status="pending" />
             <span className="text-muted-foreground font-mono text-[11px]">
-              Official dataset connectivity: Prototype/Integration Pending
+              Official dataset connectivity: Integration required
             </span>
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function DatasetExplorerPage() {
       <SectionCard
         title="Official Dataset Connectivity"
         description="Planned future integration — not currently connected"
-        action={<PrototypeStatusBadge status="pending" />}
+        action={<IntegrationStatusBadge status="pending" />}
       >
         <div className="flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4">
           <div className="flex items-start gap-3">
@@ -331,7 +331,7 @@ export default function DatasetExplorerPage() {
                 and SELENE data is not currently connected. The catalog below
                 lists reference instrument characteristics for the planned
                 modular integration layer. Every image processed in this
-                workbench today is bundled DEMO/SAMPLE DATA or a user upload —
+                workbench today is bundled synthetic benchmark imagery or a user upload —
                 never official mission data.
               </p>
             </div>
@@ -354,35 +354,35 @@ export default function DatasetExplorerPage() {
         />
         <p className="text-muted-foreground mt-3 font-mono text-[11px]">
           Characteristics compiled from public instrument documentation. Each
-          sensor is Prototype/Integration Pending — official data access is not
+          sensor is Integration required — official data access is not
           connected.
         </p>
       </SectionCard>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Bundled DEMO pairs                                                  */}
+      {/* Bundled benchmark pairs                                                  */}
       {/* ------------------------------------------------------------------ */}
       <SectionCard
-        title="Bundled DEMO/SAMPLE Pairs"
+        title="Synthetic Benchmark Pairs"
         description="Synthetic lunar-like pairs bundled in-browser for the registration pipeline — never official mission imagery"
       >
         {pairsState.status === "loading" ? (
-          <LoadingState label="Generating DEMO/SAMPLE pairs…" rows={3} />
+          <LoadingState label="Generating synthetic benchmark pairs…" rows={3} />
         ) : pairsState.status === "error" ? (
           <ErrorState
-            title="Unable to generate demo pairs"
+            title="Unable to generate benchmark pairs"
             message={pairsState.message}
             onRetry={() => generatePairs()}
           />
         ) : pairsState.pairs.length === 0 ? (
           <EmptyState
             icon={Database}
-            title="No DEMO/SAMPLE pairs available"
-            description="The bundled demo pair catalog is empty. Rebuild the app or check the demo data module."
+            title="No synthetic benchmark pairs available"
+            description="The bundled benchmark pair catalog is empty. Rebuild the app or check the benchmark data module."
           />
         ) : (
           <DataTable
-            data-ocid="demo_pairs.table"
+            data-ocid="benchmark_pairs.table"
             columns={pairColumns}
             data={pairsState.pairs}
             rowKey={(pair) => pair.metadata.id}
@@ -391,17 +391,17 @@ export default function DatasetExplorerPage() {
       </SectionCard>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Prototype status                                                    */}
+      {/* Integration status                                                    */}
       {/* ------------------------------------------------------------------ */}
       <SectionCard
-        title="Prototype Status"
+        title="Integration Status"
         description="What is functional in-browser today vs. planned for future scientific/backend integration"
       >
-        <ul data-ocid="prototype_status.list" className="flex flex-col gap-3">
+        <ul data-ocid="integration_status.list" className="flex flex-col gap-3">
           {CAPABILITY_STATUS.map((capability, index) => (
             <li
               key={capability.name}
-              data-ocid={`prototype_status.item.${index}`}
+              data-ocid={`integration_status.item.${index}`}
               className="flex flex-col gap-1.5 rounded-lg border bg-background px-3 py-3"
             >
               <div className="flex items-center justify-between gap-2">
@@ -421,7 +421,7 @@ export default function DatasetExplorerPage() {
                     {capability.name}
                   </span>
                 </span>
-                <PrototypeStatusBadge status={capability.status} />
+                <IntegrationStatusBadge status={capability.status} />
               </div>
               <p className="text-muted-foreground text-xs">
                 {capability.description}

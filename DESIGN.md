@@ -56,7 +56,7 @@ Section gaps p-6 md:p-8, card padding p-4 md:p-6, dense micro-spacing gap-2 in t
 ## Constraints
 - Dark-only theme; AA+ contrast, no raw hex or arbitrary colors in components
 - Scientific integrity: N/A or Integration required where uncomputed
-- SYNTHETIC BENCHMARK and USER DATA labels always visible on demo/user content
+- Synthetic benchmark and user-provided provenance labels remain visible on imagery.
 
 ## Signature Detail
 The telemetry readout — tabular mono numerals with unit labels and a live scanline sweeping image pairs — turns every metric into a mission instrument readout.

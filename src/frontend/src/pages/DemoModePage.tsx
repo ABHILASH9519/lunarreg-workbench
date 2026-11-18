@@ -550,7 +550,7 @@ function ScenarioStep({
         <EmptyState
           icon={Database}
           title="No benchmark pairs available"
-          description="Bundled synthetic lunar sample pairs could not be generated."
+          description="The generated synthetic lunar benchmark pairs could not be prepared."
           actionLabel="Retry"
           onAction={onLoadPairs}
         />

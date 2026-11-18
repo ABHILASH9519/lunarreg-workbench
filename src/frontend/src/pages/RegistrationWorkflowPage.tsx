@@ -173,7 +173,7 @@ export default function RegistrationWorkflowPage() {
   const sourceInputRef = useRef<HTMLInputElement>(null);
   const referenceInputRef = useRef<HTMLInputElement>(null);
 
-  // Load demo pairs on mount.
+  // Load benchmark pairs on mount.
   useEffect(() => {
     void loadPairs();
   }, [loadPairs]);
@@ -214,7 +214,7 @@ export default function RegistrationWorkflowPage() {
     setConfig,
   ]);
 
-  // Apply a demo pair to the workflow store.
+  // Apply a benchmark pair to the workflow store.
   const applyDemoPair = useCallback(
     (pair: DemoPair) => {
       setImages({
@@ -437,11 +437,11 @@ export default function RegistrationWorkflowPage() {
 
           <TabsContent value="demo" className="mt-4">
             {loading ? (
-              <LoadingState label="Generating demo pairs…" rows={3} />
+              <LoadingState label="Generating benchmark pairs…" rows={3} />
             ) : pairs.length === 0 ? (
               <EmptyState
                 icon={Database}
-                title="No demo pairs available"
+                title="No benchmark pairs available"
                 description="Bundled synthetic lunar sample pairs could not be generated."
                 actionLabel="Retry"
                 onAction={() => void loadPairs()}
@@ -836,7 +836,7 @@ export default function RegistrationWorkflowPage() {
             </Button>
             {!hasImages && (
               <p className="text-muted-foreground text-sm">
-                Select a demo pair or upload Source and Reference images to
+                Select a benchmark pair or upload Source and Reference images to
                 enable the run.
               </p>
             )}
@@ -1031,7 +1031,7 @@ export default function RegistrationWorkflowPage() {
                 />
                 <ExplainRow
                   label="Sub-pixel refinement"
-                  value="Prototype/Integration Pending"
+                  value="Integration required"
                   detail="Sub-pixel refinement is not available in-browser; results are pixel-level. See the warning in the processing console."
                   pending
                 />

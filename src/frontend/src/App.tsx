@@ -160,7 +160,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "Guided Registration",
-    items: [{ label: "Guided Workflow", to: "/demo", icon: Satellite }],
+    items: [{ label: "Guided Workflow", to: "/guided-registration", icon: Satellite }],
   },
 ];
 
@@ -455,9 +455,9 @@ const technologyRoute = createRoute({
   ),
 });
 
-const demoRoute = createRoute({
+const guidedRegistrationRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/demo",
+  path: "/guided-registration",
   component: () => (
     <Suspense fallback={<PageLoading />}>
       <DemoModePage />
@@ -477,7 +477,7 @@ const routeTree = rootRoute.addChildren([
   labRoute,
   datasetsRoute,
   technologyRoute,
-  demoRoute,
+  guidedRegistrationRoute,
 ]);
 
 const router = createRouter({ routeTree });

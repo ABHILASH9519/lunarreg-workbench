@@ -926,8 +926,7 @@ export default function AnalysesPage() {
             <Activity className="size-3.5" aria-hidden="true" />
             <span>
               All analyses run the full in-browser CV pipeline on bundled
-              SYNTHETIC BENCHMARK. Sub-pixel refinement is Prototype/Integration
-              Pending in-browser; results are pixel-level.
+              Synthetic benchmark imagery is used for repeatable computation. Sub-pixel refinement is not available in the current registration engine; results are pixel-level.
             </span>
           </div>
         </>

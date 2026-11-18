@@ -301,7 +301,7 @@ export default function DatasetExplorerPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <DataOriginBadge origin="demo" />
-            <IntegrationStatusBadge status="pending" />
+            <PrototypeStatusBadge status="pending" />
             <span className="text-muted-foreground font-mono text-[11px]">
               Official dataset connectivity: Integration required
             </span>
@@ -315,7 +315,7 @@ export default function DatasetExplorerPage() {
       <SectionCard
         title="Official Dataset Connectivity"
         description="Planned future integration — not currently connected"
-        action={<IntegrationStatusBadge status="pending" />}
+        action={<PrototypeStatusBadge status="pending" />}
       >
         <div className="flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4">
           <div className="flex items-start gap-3">
@@ -421,7 +421,7 @@ export default function DatasetExplorerPage() {
                     {capability.name}
                   </span>
                 </span>
-                <IntegrationStatusBadge status={capability.status} />
+                <PrototypeStatusBadge status={capability.status} />
               </div>
               <p className="text-muted-foreground text-xs">
                 {capability.description}

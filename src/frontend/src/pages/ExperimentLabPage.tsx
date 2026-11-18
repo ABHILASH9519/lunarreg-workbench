@@ -46,10 +46,10 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 // ---------------------------------------------------------------------------
 // Experiment Lab: configure multiple experiment variants and run them
-// side-by-side on a selected DEMO/SAMPLE DATA pair. Every number comes from a
+// side-by-side on a selected SYNTHETIC BENCHMARK pair. Every number comes from a
 // real in-browser CV run — nothing is fabricated. Detector presets are real
 // parameter presets over the unified FAST/Harris core; actual SIFT/BRISK/KAZE
-// algorithms are honestly labeled Prototype/Integration Pending.
+// algorithms are honestly labeled Integration required.
 // ---------------------------------------------------------------------------
 
 const DETECTORS: FeatureDetector[] = [
@@ -423,7 +423,7 @@ export default function ExperimentLabPage() {
       {/* Experiment setup */}
       <SectionCard
         title="Experiment Setup"
-        description="Select a DEMO/SAMPLE DATA pair, then build the variants to compare."
+        description="Select a SYNTHETIC BENCHMARK pair, then build the variants to compare."
         action={
           <Button
             data-ocid="experiment_lab.run_button"
@@ -446,7 +446,7 @@ export default function ExperimentLabPage() {
               htmlFor="experiment-lab-pair"
               className="text-muted-foreground text-xs font-medium uppercase tracking-wider"
             >
-              Demo pair
+              Benchmark pair
             </label>
             {pairs.length === 0 ? (
               <Button
@@ -456,7 +456,7 @@ export default function ExperimentLabPage() {
                 disabled={loading}
                 className="justify-start"
               >
-                {loading ? "Loading pairs…" : "Load demo pairs"}
+                {loading ? "Loading pairs…" : "Load benchmark pairs"}
               </Button>
             ) : (
               <Select
@@ -468,7 +468,7 @@ export default function ExperimentLabPage() {
                   data-ocid="experiment_lab.pair_select"
                   className="w-full"
                 >
-                  <SelectValue placeholder="Select a demo pair" />
+                  <SelectValue placeholder="Select a benchmark pair" />
                 </SelectTrigger>
                 <SelectContent>
                   {pairs.map((p) => (

@@ -105,7 +105,7 @@ interface MultiModalPoint {
 }
 
 // ---------------------------------------------------------------------------
-// Demo scenario definitions
+// Benchmark scenario definitions
 // ---------------------------------------------------------------------------
 
 interface Scenario {
@@ -374,7 +374,7 @@ export default function AnalysesPage() {
         </div>
         <p className="text-muted-foreground max-w-3xl text-sm">
           Every metric below is computed from real in-browser CV pipeline runs
-          on the bundled DEMO/SAMPLE DATA pairs — never fabricated. The pipeline
+          on the bundled SYNTHETIC BENCHMARK pairs — never fabricated. The pipeline
           detects features, matches descriptors, verifies geometry via RANSAC,
           and evaluates RMSE and inlier ratio on actual pixel data.
         </p>
@@ -382,7 +382,7 @@ export default function AnalysesPage() {
 
       {loading ? (
         <LoadingState
-          label="Running robustness analyses on demo pairs…"
+          label="Running robustness analyses on benchmark pairs…"
           rows={4}
         />
       ) : error ? (
@@ -393,10 +393,10 @@ export default function AnalysesPage() {
         />
       ) : (
         <>
-          {/* Demo Scenario Selector */}
+          {/* Benchmark Scenario Selector */}
           <SectionCard
-            title="Demo Scenario Selector"
-            description="Pick a scenario to load the corresponding demo pair and run a focused registration analysis for quick SIH presentation."
+            title="Benchmark Scenario Selector"
+            description="Pick a scenario to load the corresponding benchmark pair and run a focused registration analysis for quick SIH presentation."
           >
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {SCENARIOS.map((s) => {
@@ -501,7 +501,7 @@ export default function AnalysesPage() {
 
                 <p className="text-muted-foreground text-xs">
                   Scenario: {activeScenario.label}. This run uses the{" "}
-                  {scenarioResult.pair.metadata.sensor} demo pair with real
+                  {scenarioResult.pair.metadata.sensor} benchmark pair with real
                   in-browser CV. All values are computed from the actual
                   pipeline output.
                 </p>
@@ -510,8 +510,8 @@ export default function AnalysesPage() {
               <div className="mt-4">
                 <EmptyState
                   icon={Gauge}
-                  title="Select a demo scenario"
-                  description="Choose a scenario above to load the corresponding demo pair and run a focused registration analysis."
+                  title="Select a benchmark scenario"
+                  description="Choose a scenario above to load the corresponding benchmark pair and run a focused registration analysis."
                 />
               </div>
             )}
@@ -520,7 +520,7 @@ export default function AnalysesPage() {
           {/* Sun-Angle Robustness */}
           <SectionCard
             title="Sun-Angle Robustness Analysis"
-            description="Registration performance across demo pairs with different sun azimuth/elevation, compared with illumination normalization ON vs OFF."
+            description="Registration performance across benchmark pairs with different sun azimuth/elevation, compared with illumination normalization ON vs OFF."
           >
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="flex flex-col gap-2">
@@ -687,7 +687,7 @@ export default function AnalysesPage() {
           {/* Scale Robustness */}
           <SectionCard
             title="Scale Robustness Analysis"
-            description="How inlier ratio and RMSE change as the scale ratio between source and reference increases, across the bundled demo pairs."
+            description="How inlier ratio and RMSE change as the scale ratio between source and reference increases, across the bundled benchmark pairs."
           >
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="flex flex-col gap-2">
@@ -828,7 +828,7 @@ export default function AnalysesPage() {
           {/* Multi-Modal Analysis */}
           <SectionCard
             title="Multi-Modal Analysis"
-            description="Per-sensor registration metrics across the supported multi-modal demo pairs (OHRC, TMC-2, IIRS, LRO NAC, SELENE). Each pair carries genuine multi-modal appearance variation between source and reference."
+            description="Per-sensor registration metrics across the supported multi-modal benchmark pairs (OHRC, TMC-2, IIRS, LRO NAC, SELENE). Each pair carries genuine multi-modal appearance variation between source and reference."
           >
             <div className="flex flex-col gap-2">
               <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
@@ -926,8 +926,7 @@ export default function AnalysesPage() {
             <Activity className="size-3.5" aria-hidden="true" />
             <span>
               All analyses run the full in-browser CV pipeline on bundled
-              DEMO/SAMPLE DATA. Sub-pixel refinement is Prototype/Integration
-              Pending in-browser; results are pixel-level.
+              Synthetic benchmark imagery is used for repeatable computation. Sub-pixel refinement is not available in the current registration engine; results are pixel-level.
             </span>
           </div>
         </>

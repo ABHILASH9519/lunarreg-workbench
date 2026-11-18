@@ -1,0 +1,5 @@
+package cv
+import("bytes";"context";"fmt";"io";"mime/multipart";"net/http";"time")
+type Client struct{base string;http *http.Client}
+func New(base string)*Client{return &Client{base:base,http:&http.Client{Timeout:3*time.Minute}}}
+func(c *Client)Register(ctx context.Context,sn,rn string,src,ref,cfg []byte)([]byte,error){var b bytes.Buffer;m:=multipart.NewWriter(&b);for _,f:=range []struct{key,name string;data []byte}{{"source",sn,src},{"reference",rn,ref}}{p,e:=m.CreateFormFile(f.key,f.name);if e!=nil{return nil,e};if _,e=p.Write(f.data);e!=nil{return nil,e}};if e:=m.WriteField("config",string(cfg));e!=nil{return nil,e};if e:=m.Close();e!=nil{return nil,e};req,e:=http.NewRequestWithContext(ctx,http.MethodPost,c.base+"/v1/register",&b);if e!=nil{return nil,e};req.Header.Set("Content-Type",m.FormDataContentType());res,e:=c.http.Do(req);if e!=nil{return nil,fmt.Errorf("CV worker unavailable: %w",e)};defer res.Body.Close();payload,e:=io.ReadAll(io.LimitReader(res.Body,50<<20));if e!=nil{return nil,e};if res.StatusCode<200||res.StatusCode>=300{return nil,fmt.Errorf("CV worker returned %s: %s",res.Status,string(payload))};return payload,nil}

@@ -1,83 +1,137 @@
 # LunarReg Workbench 🌕
 
-**Automated lunar image registration and correspondence analysis**
+**Cross-mission lunar image registration, geometric alignment and quantitative correspondence analysis.**
 
-LunarReg Workbench aligns a moving lunar image with a fixed reference image and evaluates the geometric consistency of the alignment. It is intended for comparative analysis of lunar imagery from missions such as Chandrayaan-2, NASA's Lunar Reconnaissance Orbiter (LRO), and SELENE.
+LunarReg is an image-processing workbench for aligning lunar observations acquired by different missions, sensors and imaging conditions. It is designed to help researchers compare the same lunar surface region despite changes in illumination, viewing geometry, scale, resolution and sensor characteristics.
 
-## Current implementation
+The platform targets imagery from **Chandrayaan-2 (OHRC, TMC-2 and IIRS), NASA's Lunar Reconnaissance Orbiter (LRO NAC), and JAXA's SELENE (Kaguya)**.
 
-The current repository is a React 19 + TypeScript + Vite application with an Internet Computer (Motoko) canister for user-scoped registration-job metadata and result history. The image-registration pipeline currently executes in the browser on decoded image pixels; it is **not** a Python/OpenCV server implementation.
+## About LunarReg
 
-### Implemented in the current codebase
+Read the project overview in [ABOUT.md](ABOUT.md) and the [production release gates](docs/PRODUCTION_RELEASE_GATES.md).
 
-- Source (moving) and reference (fixed) image selection.
-- PNG and JPEG/JPG uploads, with a 20 MB per-file guard.
-- Grayscale conversion, optional denoising, and contrast enhancement.
-- Gaussian-pyramid generation for multi-scale analysis (the current feature detector operates on the processed base level).
-- FAST-style corner detection with Harris response ranking and a deterministic BRIEF-like binary descriptor (an ORB-inspired implementation, not OpenCV's ORB implementation).
-- Hamming-distance descriptor matching, Lowe-style ratio filtering, and mutual-nearest-neighbour cross-check.
-- RANSAC geometric verification for Similarity, Affine, and Homography candidates.
-- Explicit user-selected transformation model for the registration warp; candidate-model statistics remain available for comparison.
-- Spatial-grid correspondence filtering.
-- Registered grayscale output, overlay, difference, and checkerboard composites.
-- Computed inlier/outlier counts, RMSE, reprojection error, spatial coverage, scale, and rotation where available.
-- Job creation, result persistence, job history, and report/export interfaces through the application.
+LunarReg brings image preparation, feature detection, descriptor matching, robust geometric estimation, registration visualisation and quantitative evaluation into one workflow. The objective is reproducible, inspectable registration: every reported metric should be derived from the actual correspondence set and transformation, with unavailable values reported explicitly rather than fabricated.
 
-### Not yet integrated (do not present as completed)
+The project is being engineered around a Go-first backend with a focused Python computer-vision service:
 
-- Native TIFF/GeoTIFF decoding and geospatial metadata preservation.
-- OpenCV-backed SIFT, ORB, AKAZE, BRISK, or KAZE implementations. The current detector is the documented FAST + BRIEF-like implementation only.
-- True multi-octave feature detection across the generated pyramid.
-- Sub-pixel correspondence refinement.
-- A Python/OpenCV processing service or server-side GPU acceleration.
-- Independent scientific validation against a curated set of official cross-mission lunar image pairs.
+- **Go (75–80% target):** REST API, authentication and authorization, job lifecycle, orchestration, persistence, storage integrations, validation, observability and deployment.
+- **Python (15–20% target):** image decoding, OpenCV feature extraction, descriptor matching, RANSAC estimation, image warping and computer-vision metrics.
+- **Frontend:** React, TypeScript and Vite for the registration workspace, visual analysis, configuration and reporting.
 
-The UI should show unavailable metrics as N/A and should not substitute sample values for measurements. Bundled synthetic pairs are labeled DEMO/SAMPLE DATA and must not be described as official mission imagery.
+The language split is an architectural target. It is not a measured line-count result.
 
-## Workflow
+## Core registration workflow
 
-1. Choose a bundled synthetic sample pair or upload a supported PNG/JPEG pair.
-2. Configure preprocessing, feature count, descriptor ratio/cross-check, RANSAC threshold, spatial grid, and transformation model.
-3. Run the browser-side registration pipeline.
-4. Inspect the correspondence set, inliers/outliers, registered output, overlay, difference, and checkerboard views.
-5. Review computed metrics and warnings.
-6. Save the result to the signed-in user's job history and export the available report/artifacts.
+1. Upload a moving/source image and a fixed/reference image.
+2. Inspect image metadata and configure preprocessing and feature detection.
+3. Extract and match local features, filter descriptors and verify correspondences.
+4. Estimate Similarity, Affine or Homography transforms using robust geometric verification.
+5. Inspect inliers, outliers, spatial distribution, registered output, overlay and difference views.
+6. Evaluate RMSE, reprojection error, inlier ratio, correspondence counts, spatial coverage, scale and rotation.
+7. Persist the run configuration and results, compare registration strategies and export reports.
 
-## Technology stack
+## Scientific integrity and data provenance
 
-| Layer | Current technology |
+LunarReg distinguishes generated benchmark imagery, user-provided files and verified mission products. Generated benchmark imagery is useful for deterministic algorithm tests, but it is not represented as official ISRO, NASA or JAXA imagery. Mission provenance and geospatial metadata must be retained when official products are integrated.
+
+Metrics describe the geometric fit of the accepted correspondences. They do not, by themselves, establish scientific correctness. Reliable cross-mission evaluation also requires traceable source products, documented coordinate systems, independent ground truth and repeatable validation.
+
+## Architecture
+
+```text
+React + TypeScript UI
+        |
+        | HTTPS / JSON + multipart image upload
+        v
+Go REST API  ---- Authentication / Authorization
+        |
+        +---- PostgreSQL (jobs, configurations, metrics, audit data)
+        |
+        +---- Object Storage (originals and generated artifacts)
+        |
+        +---- Job Queue / Worker Orchestration
+                    |
+                    v
+             Python + OpenCV CV Worker
+                    |
+                    +---- decode / normalize
+                    +---- detect / describe / match
+                    +---- RANSAC transform estimation
+                    +---- warp / overlay / difference
+                    +---- metrics and correspondence output
+```
+
+The Go API and Python worker foundation currently live on the `feat/go-python-backend-migration` branch. The frontend has not yet been switched over to that API. The existing application still contains its earlier browser-side registration pipeline and Internet Computer/Motoko persistence. Do not treat the new backend foundation as an already completed end-to-end migration.
+
+## Repository layout
+
+| Path | Responsibility |
 |---|---|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| UI and routing | Radix UI components, TanStack Router, Zustand |
-| Registration engine | TypeScript browser-side computer-vision implementation |
-| Geometric verification | RANSAC and Similarity/Affine/Homography estimators |
-| Backend | Motoko canister on the Internet Computer |
-| Persistence | User-scoped job and result records in the canister; uploaded image bytes are processed client-side |
-| Tests | Vitest, Testing Library, PocketIC backend test lane |
+| `src/frontend/` | React application, registration workflow, analysis views and reports |
+| `src/backend/` | Existing Internet Computer/Motoko application backend |
+| `backend/go/` | Go REST API, job lifecycle and PostgreSQL persistence |
+| `backend/python/` | Python/OpenCV registration worker |
+| `docker-compose.backend.yml` | Local PostgreSQL, CV worker and Go API stack |
+| `.github/workflows/` | Frontend, Go and Python CI validation |
 
-## Local development
+## Run the Go + Python services locally
 
-Use Node.js 22 and pnpm 9 (the repository is a pnpm workspace).
+Requirements: Docker Engine with Compose, or Go 1.23+, Python 3.12+ and PostgreSQL 15+.
+
+```bash
+docker compose -f docker-compose.backend.yml up --build
+```
+
+The API listens on `http://127.0.0.1:8080` and the CV worker is reachable only inside the Compose network.
+
+- `GET /healthz` — API liveness
+- `GET /readyz` — API and database readiness
+- `POST /api/v1/jobs` — submit source/reference images and a JSON configuration
+- `GET /api/v1/jobs` — list recent registration jobs
+- `GET /api/v1/jobs/{id}` — retrieve a registration job
+- `DELETE /api/v1/jobs/{id}` — delete a registration job
+
+The current API is an integration foundation, not a public production endpoint. It does not yet implement production authentication, durable asynchronous queues, object-storage lifecycle, quotas or full frontend integration. Keep it private. Change the local database password before using the Compose stack beyond an isolated workstation.
+
+## Validation
+
+Frontend:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm --dir src/frontend dev
-```
-
-Validation commands:
-
-```bash
 pnpm typecheck
 pnpm --filter @caffeine/template-frontend build
 pnpm test
 ```
 
-Backend development additionally requires the Motoko package manager (mops) and the project's configured Internet Computer environment.
+Go:
 
-## Scientific interpretation
+```bash
+cd backend/go
+go test ./...
+```
 
-RMSE and reprojection error are calculated from the accepted correspondences under the selected geometric model. Inlier ratio, spatial coverage, scale, and rotation provide complementary diagnostics; none alone proves scientific correctness. A successful software run is not a substitute for ground-truth validation or mission-product provenance checks.
+Python:
 
-## Future work
+```bash
+cd backend/python
+pip install -r requirements-dev.txt
+pytest -q
+```
 
-Integrate a dedicated TIFF/GeoTIFF reader, add standards-based SIFT/ORB/AKAZE or learned feature pipelines, perform multi-scale feature detection, implement sub-pixel refinement, and validate against sourced cross-mission image pairs with documented ground truth.
+CI is configured to run the frontend, Go and Python validation lanes. A green build is required before release; scientific accuracy additionally requires independent image-pair validation.
+
+## Current engineering priorities
+
+- Complete the frontend-to-Go REST integration and remove the legacy persistence dependency.
+- Implement production identity, authorization and user-scoped data access.
+- Add durable job execution, retry/cancellation semantics and object storage for large source/result images.
+- Complete native TIFF/GeoTIFF handling, coordinate-reference and affine metadata preservation.
+- Complete multi-scale feature extraction and sub-pixel correspondence refinement.
+- Add official mission-product ingestion with source citations, provenance and coordinate-system checks.
+- Establish a curated cross-mission validation corpus with independently verified ground truth and acceptance thresholds.
+- Validate the complete user journey, accessibility, responsive layouts, error recovery, security and performance before release.
+
+## License and attribution
+
+Add the repository's chosen license and cite the original mission-product providers and any external datasets used in published evaluations. Do not redistribute mission data without checking the provider's usage terms.

@@ -10,8 +10,8 @@ export interface PrototypeStatusBadgeProps {
 }
 
 /**
- * PrototypeStatusBadge: distinguishes 'Functional in-browser' (cyan) from
- * 'Prototype/Integration Pending' (amber) capabilities.
+ * Capability status badge: distinguishes capabilities available in the current
+ * application from integrations that still require implementation.
  */
 export function PrototypeStatusBadge({
   status,
@@ -26,7 +26,7 @@ export function PrototypeStatusBadge({
         )}
       >
         <Cpu aria-hidden="true" />
-        Functional in-browser
+        Available in current workflow
       </Badge>
     );
   }
@@ -35,7 +35,7 @@ export function PrototypeStatusBadge({
       className={cn("border-warning/40 bg-warning/15 text-warning", className)}
     >
       <Wrench aria-hidden="true" />
-      Prototype/Integration Pending
+      Integration required
     </Badge>
   );
 }

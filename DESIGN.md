@@ -19,7 +19,7 @@ Monospace telemetry readouts (RMSE, inliers/outliers) with a live scanline sweep
 | accent     | 0.78 0.14 75   | lunar gold — highlights, active states      |
 | muted      | 0.21 0.015 260 | secondary surface                           |
 | success    | 0.65 0.16 150  | inlier / valid metrics                      |
-| warning    | 0.78 0.14 75   | caution / demo-data badges                  |
+| warning    | 0.78 0.14 75   | caution / benchmark-data badges                  |
 | destructive| 0.6 0.2 22     | outlier / error / abort                     |
 | border     | 0.26 0.02 260  | hairline panel borders                      |
 
@@ -35,7 +35,7 @@ Layered surfaces on near-black: cards at bg-card with hairline border + shadow-s
 ## Structural Zones
 | Zone     | Background        | Border        | Notes                                            |
 | -------- | ----------------- | ------------- | ------------------------------------------------ |
-| Header   | bg-card/80 blur   | border-b      | mission bar: wordmark, DEMO badge, LIVE status   |
+| Header   | bg-card/80 blur   | border-b      | mission bar: wordmark, registration status indicator, LIVE status   |
 | Sidebar  | bg-sidebar        | border-r      | nav rail, active item in cyan/gold               |
 | Content  | bg-background     | —             | alternate bg-muted/30 sections, bg-grid overlays |
 | Footer   | bg-muted/40       | border-t      | data-source & integrity note                     |
@@ -46,7 +46,7 @@ Section gaps p-6 md:p-8, card padding p-4 md:p-6, dense micro-spacing gap-2 in t
 ## Component Patterns
 - Buttons: rounded-md, primary uses gradient-primary, hover brightness + shadow-subtle
 - Cards: rounded-lg bg-card border-border shadow-subtle, elevated on hover
-- Badges: rounded-full pill, mono text; cyan data, gold demo/sample, red outlier
+- Badges: rounded-full pill, mono text; cyan data, gold benchmark provenance, red outlier
 
 ## Motion
 - Entrance: animate-fade-in-up 0.5s ease-out both on panels
@@ -55,8 +55,8 @@ Section gaps p-6 md:p-8, card padding p-4 md:p-6, dense micro-spacing gap-2 in t
 
 ## Constraints
 - Dark-only theme; AA+ contrast, no raw hex or arbitrary colors in components
-- Scientific integrity: N/A or Prototype/Integration Pending where uncomputed
-- DEMO/SAMPLE DATA and USER DATA labels always visible on demo/user content
+- Scientific integrity: N/A or Integration required where uncomputed
+- Synthetic benchmark and user-provided provenance labels remain visible on imagery.
 
 ## Signature Detail
 The telemetry readout — tabular mono numerals with unit labels and a live scanline sweeping image pairs — turns every metric into a mission instrument readout.

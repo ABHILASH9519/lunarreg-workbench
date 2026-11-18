@@ -324,7 +324,7 @@ const FUTURE_WORK: FutureWork[] = [
   {
     title: "Official Dataset Connectivity",
     description:
-      "Direct access to live Chandrayaan-2 OHRC / TMC-2 / IIRS, LRO NAC, and SELENE data instead of bundled DEMO/SAMPLE pairs.",
+      "Direct access to live Chandrayaan-2 OHRC / TMC-2 / IIRS, LRO NAC, and SELENE data instead of bundled synthetic benchmark pairs.",
     icon: Database,
   },
   {
@@ -342,7 +342,7 @@ const FUTURE_WORK: FutureWork[] = [
   {
     title: "Higher-Precision Sub-Pixel Refinement",
     description:
-      "Advance sub-pixel correspondence refinement to reduce residual reprojection error beyond the current prototype precision.",
+      "Advance sub-pixel correspondence refinement to reduce residual reprojection error beyond the current current implementation precision.",
     icon: Target,
   },
 ];
@@ -412,7 +412,7 @@ export default function TechnologyPage() {
             <PrototypeStatusBadge status="functional" />
             <span className="text-muted-foreground font-mono text-[11px]">
               Core pipeline runs in-browser · advanced capabilities marked as
-              Prototype/Integration Pending
+              Integration required
             </span>
           </div>
         </div>
@@ -500,7 +500,7 @@ export default function TechnologyPage() {
             })}
           </div>
           <p className="text-muted-foreground mt-3 font-mono text-[11px]">
-            Stages marked Prototype/Integration Pending are planned and not yet
+            Stages marked Integration required are planned and not yet
             part of the in-browser engine.
           </p>
         </SectionCard>
@@ -606,18 +606,18 @@ export default function TechnologyPage() {
       <section data-ocid="page.future" aria-label="Limitations and future work">
         <SectionCard
           title="Limitations & Future Work"
-          description="Current prototype constraints and the planned roadmap — all clearly marked as future work"
+          description="Current current engineering constraints and the planned roadmap — all clearly marked as future work"
         >
           <div className="mb-4 flex flex-col gap-2 rounded-xl border border-warning/30 bg-warning/5 p-4">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-warning" aria-hidden="true" />
               <span className="font-display text-sm font-semibold">
-                Current Prototype Limitations
+                Current Engineering Constraints
               </span>
             </div>
             <ul className="text-muted-foreground flex list-disc flex-col gap-1 pl-5 text-sm">
               <li>
-                Runs entirely in-browser on bundled DEMO/SAMPLE pairs — no live
+                Runs entirely in-browser on bundled synthetic benchmark pairs — no live
                 official dataset connectivity.
               </li>
               <li>

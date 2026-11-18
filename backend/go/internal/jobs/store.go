@@ -1,0 +1,13 @@
+package jobs
+import("context";"encoding/json";"errors";"time";"github.com/jackc/pgx/v5/pgxpool")
+type Job struct{ID string `json:"id"`;Status string `json:"status"`;CreatedAt time.Time `json:"createdAt"`;UpdatedAt time.Time `json:"updatedAt"`;SourceName string `json:"sourceName"`;ReferenceName string `json:"referenceName"`;Config json.RawMessage `json:"config"`;Result json.RawMessage `json:"result,omitempty"`;Error string `json:"error,omitempty"`}
+type Store struct{db *pgxpool.Pool}
+func Open(ctx context.Context,url string)(*Store,error){if url==""{return nil,errors.New("DATABASE_URL is required")};p,e:=pgxpool.New(ctx,url);if e!=nil{return nil,e};if e=p.Ping(ctx);e!=nil{p.Close();return nil,e};return &Store{db:p},nil}
+func(s *Store)Close(){s.db.Close()}
+func(s *Store)Create(ctx context.Context,j Job)error{_,e:=s.db.Exec(ctx,"INSERT INTO registration_jobs(id,status,created_at,updated_at,source_name,reference_name,config) VALUES($1,$2,$3,$4,$5,$6,$7)",j.ID,j.Status,j.CreatedAt,j.UpdatedAt,j.SourceName,j.ReferenceName,[]byte(j.Config));return e}
+func(s *Store)Update(ctx context.Context,j Job)error{_,e:=s.db.Exec(ctx,"UPDATE registration_jobs SET status=$2,updated_at=$3,result=$4,error=$5 WHERE id=$1",j.ID,j.Status,j.UpdatedAt,nullableJSON(j.Result),nullableText(j.Error));return e}
+func(s *Store)Get(ctx context.Context,id string)(Job,error){var j Job;var result []byte;var msg *string;e:=s.db.QueryRow(ctx,"SELECT id,status,created_at,updated_at,source_name,reference_name,config,result,error FROM registration_jobs WHERE id=$1",id).Scan(&j.ID,&j.Status,&j.CreatedAt,&j.UpdatedAt,&j.SourceName,&j.ReferenceName,&j.Config,&result,&msg);if e!=nil{return Job{},e};j.Result=result;if msg!=nil{j.Error=*msg};return j,nil}
+func(s *Store)List(ctx context.Context)([]Job,error){rows,e:=s.db.Query(ctx,"SELECT id,status,created_at,updated_at,source_name,reference_name,config,result,error FROM registration_jobs ORDER BY created_at DESC LIMIT 200");if e!=nil{return nil,e};defer rows.Close();out:=[]Job{};for rows.Next(){var j Job;var result []byte;var msg *string;if e:=rows.Scan(&j.ID,&j.Status,&j.CreatedAt,&j.UpdatedAt,&j.SourceName,&j.ReferenceName,&j.Config,&result,&msg);e!=nil{return nil,e};j.Result=result;if msg!=nil{j.Error=*msg};out=append(out,j)};return out,rows.Err()}
+func(s *Store)Delete(ctx context.Context,id string)error{tag,e:=s.db.Exec(ctx,"DELETE FROM registration_jobs WHERE id=$1",id);if e!=nil{return e};if tag.RowsAffected()==0{return errors.New("not found")};return nil}
+func nullableJSON(v json.RawMessage)any{if len(v)==0{return nil};return []byte(v)}
+func nullableText(v string)any{if v==""{return nil};return v}

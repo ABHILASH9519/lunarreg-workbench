@@ -159,8 +159,8 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Demo",
-    items: [{ label: "Demo Mode", to: "/demo", icon: Satellite }],
+    label: "Guided Registration",
+    items: [{ label: "Guided Workflow", to: "/guided-registration", icon: Satellite }],
   },
 ];
 
@@ -195,11 +195,11 @@ function MissionHeader() {
 
       <div className="ml-auto flex items-center gap-3">
         <Badge
-          data-ocid="header.demo_badge"
+          data-ocid="header.engine_badge"
           className="border-warning/50 bg-warning/15 text-warning font-mono text-[10px] uppercase tracking-widest"
         >
           <Activity className="size-3" aria-hidden="true" />
-          DEMO / SAMPLE DATA
+          IMAGE REGISTRATION
         </Badge>
 
         {isAuthenticated ? (
@@ -306,7 +306,7 @@ function SidebarNav() {
             aria-hidden="true"
           />
           <span className="text-muted-foreground text-xs">
-            v0.1 · Prototype
+            Research & Analysis Platform
           </span>
         </div>
       </SidebarFooter>
@@ -455,9 +455,9 @@ const technologyRoute = createRoute({
   ),
 });
 
-const demoRoute = createRoute({
+const guidedRegistrationRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/demo",
+  path: "/guided-registration",
   component: () => (
     <Suspense fallback={<PageLoading />}>
       <DemoModePage />
@@ -477,7 +477,7 @@ const routeTree = rootRoute.addChildren([
   labRoute,
   datasetsRoute,
   technologyRoute,
-  demoRoute,
+  guidedRegistrationRoute,
 ]);
 
 const router = createRouter({ routeTree });

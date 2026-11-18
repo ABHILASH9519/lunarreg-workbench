@@ -233,7 +233,7 @@ export default function MissionControlPage() {
           <button
             data-ocid="quick_action.run_registration"
             type="button"
-            onClick={() => navigate({ to: "/demo" })}
+            onClick={() => navigate({ to: "/guided-registration" })}
             className="group flex items-center gap-3 rounded-xl border bg-card p-4 text-left shadow-subtle transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
           >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-accent/10 text-accent">

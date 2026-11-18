@@ -8,6 +8,8 @@ The platform targets imagery from **Chandrayaan-2 (OHRC, TMC-2 and IIRS), NASA's
 
 ## About LunarReg
 
+Read the project overview in [ABOUT.md](ABOUT.md) and the [production release gates](docs/PRODUCTION_RELEASE_GATES.md).
+
 LunarReg brings image preparation, feature detection, descriptor matching, robust geometric estimation, registration visualisation and quantitative evaluation into one workflow. The objective is reproducible, inspectable registration: every reported metric should be derived from the actual correspondence set and transformation, with unavailable values reported explicitly rather than fabricated.
 
 The project is being engineered around a Go-first backend with a focused Python computer-vision service:

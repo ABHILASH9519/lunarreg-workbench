@@ -10,7 +10,7 @@ export interface DataOriginBadgeProps {
 }
 
 /**
- * DataOriginBadge: distinguishes DEMO/SAMPLE DATA (gold) from USER DATA (cyan).
+ * DataOriginBadge: distinguishes synthetic benchmark imagery (gold) from user-provided imagery (cyan).
  * Demo data is synthetic and never represented as official ISRO/Chandrayaan-2 data.
  */
 export function DataOriginBadge({ origin, className }: DataOriginBadgeProps) {
@@ -23,7 +23,7 @@ export function DataOriginBadge({ origin, className }: DataOriginBadgeProps) {
         )}
       >
         <Database aria-hidden="true" />
-        DEMO/SAMPLE DATA
+        SYNTHETIC BENCHMARK
       </Badge>
     );
   }
@@ -32,7 +32,7 @@ export function DataOriginBadge({ origin, className }: DataOriginBadgeProps) {
       className={cn("border-primary/40 bg-primary/15 text-primary", className)}
     >
       <HardDrive aria-hidden="true" />
-      USER DATA
+      USER-PROVIDED DATA
     </Badge>
   );
 }

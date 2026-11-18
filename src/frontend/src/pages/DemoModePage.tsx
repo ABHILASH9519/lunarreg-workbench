@@ -47,7 +47,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
  * real in-browser CV pipeline on bundled synthetic benchmark pairs. Every metric is
  * computed from actual pixel data; nothing is fabricated. The full technical
  * workbench stays reachable via the Correspondence/Registration Viewers and
- * the "Full Workbench" exit.
+ * the "Open Workbench" exit.
  */
 
 type DemoStep = 1 | 2 | 3 | 4;
@@ -62,7 +62,7 @@ const STEPS: Array<{ id: DemoStep; label: string }> = [
 const FLOW: Array<{ title: string; description: string }> = [
   {
     title: "Welcome & Overview",
-    description: "You are here — the guided presentation flow.",
+    description: "You are here — the guided registration workflow.",
   },
   {
     title: "Select a Benchmark Scenario",
@@ -304,7 +304,7 @@ export default function DemoModePage() {
             className="gap-1.5"
           >
             <Workflow className="size-4" aria-hidden="true" />
-            Full Workbench
+            Open Workbench
           </Button>
         </div>
       </div>
@@ -465,10 +465,10 @@ function OverviewStep({ onBegin }: OverviewStepProps) {
             className="gap-2 text-base"
           >
             <Rocket className="size-5" aria-hidden="true" />
-            Begin Presentation
+            Begin Registration
           </Button>
           <p className="text-muted-foreground font-mono text-[11px]">
-            Guided 3–5 minute flow · full workbench access preserved
+            Guided registration workflow · full workbench access preserved
           </p>
         </div>
       </div>
@@ -613,7 +613,7 @@ function ScenarioStep({
           {/* All bundled pairs */}
           <div className="flex flex-col gap-2">
             <h3 className="font-display text-sm font-semibold">
-              All Bundled DEMO Pairs
+              Available Benchmark Pairs
             </h3>
             <ul data-ocid="demo.pair_list" className="flex flex-col gap-2">
               {pairs.map((pair, index) => (
@@ -730,7 +730,7 @@ function RunStep({
         <EmptyState
           icon={Database}
           title="No scenario selected"
-          description="Choose a demo scenario to load its bundled synthetic benchmark pair into the pipeline."
+          description="Choose a benchmark scenario to load its generated image pair into the registration pipeline."
           actionLabel="Select Scenario"
           onAction={onPickScenario}
         />
@@ -1090,7 +1090,7 @@ function ResultsStep({
               className="ml-auto gap-1.5"
             >
               <Workflow className="size-4" aria-hidden="true" />
-              Full Workbench
+              Open Workbench
             </Button>
           </div>
         </div>

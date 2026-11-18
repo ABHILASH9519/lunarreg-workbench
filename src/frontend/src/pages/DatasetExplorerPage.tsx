@@ -4,8 +4,8 @@ import type { DataTableColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
-import { IntegrationStatusBadge } from "@/components/PrototypeStatusBadge";
-import type { IntegrationStatus } from "@/components/PrototypeStatusBadge";
+import { PrototypeStatusBadge } from "@/components/PrototypeStatusBadge";
+import type { PrototypeStatus } from "@/components/PrototypeStatusBadge";
 import { SectionCard } from "@/components/SectionCard";
 import { generateAllDemoPairs } from "@/lib/demo/demo-pairs";
 import type { DemoPair, DemoPairMetadata } from "@/lib/types";
@@ -90,7 +90,7 @@ const SENSOR_PROFILES: SensorProfile[] = [
 interface CapabilityStatus {
   name: string;
   description: string;
-  status: IntegrationStatus;
+  status: PrototypeStatus;
 }
 
 const CAPABILITY_STATUS: CapabilityStatus[] = [
@@ -210,7 +210,7 @@ export default function DatasetExplorerPage() {
     },
     {
       header: "Integration",
-      cell: () => <IntegrationStatusBadge status="pending" />,
+      cell: () => <PrototypeStatusBadge status="pending" />,
     },
   ];
 

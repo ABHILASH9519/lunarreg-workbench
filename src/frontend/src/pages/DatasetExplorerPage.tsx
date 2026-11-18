@@ -7,7 +7,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { IntegrationStatusBadge } from "@/components/IntegrationStatusBadge";
 import type { IntegrationStatus } from "@/components/IntegrationStatusBadge";
 import { SectionCard } from "@/components/SectionCard";
-import { generateAllDemoPairs } from "@/lib/benchmark/benchmark-pairs";
+import { generateAllDemoPairs } from "@/lib/demo/demo-pairs";
 import type { DemoPair, DemoPairMetadata } from "@/lib/types";
 import { Cpu, Database, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";

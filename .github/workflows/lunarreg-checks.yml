@@ -59,4 +59,6 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Test CV worker
         working-directory: backend/python
-        run: pytest -q
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q

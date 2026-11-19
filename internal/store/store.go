@@ -239,3 +239,6 @@ func (s *Store) Status(id string) string {
 
 // All returns every job (all owners) without logs; used for aggregate stats.
 func (s *Store) All(owner string) []Job { return s.List(owner) }
+
+// Dir returns the data directory.
+func (s *Store) Dir() string { return s.dir }

@@ -10,12 +10,15 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"lunarreg/internal/charts"
 	"lunarreg/internal/cv"
 	"lunarreg/internal/store"
 	"lunarreg/internal/synth"
@@ -29,6 +32,8 @@ func (s *Server) routes(m *http.ServeMux) {
 	m.HandleFunc("GET /api/samples", s.samples)
 	m.HandleFunc("GET /api/samples/{id}/{which}", s.sampleImage)
 	m.HandleFunc("GET /api/defaults", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, cv.DefaultParams()) })
+	m.HandleFunc("GET /api/charts/{name}", s.chart)
+	m.HandleFunc("GET /api/benchmark", s.benchmark)
 	m.HandleFunc("GET /api/jobs", s.listJobs)
 	m.HandleFunc("POST /api/jobs", s.createJob)
 	m.HandleFunc("GET /api/jobs/{id}", s.getJob)
@@ -493,7 +498,13 @@ func (s *Server) sweepJob(w http.ResponseWriter, r *http.Request) {
 		}(i, v, p)
 	}
 	wg.Wait()
-	writeJSON(w, 200, map[string]any{"param": req.Param, "rows": rows})
+	vals := map[string]float64{}
+	for _, rw := range rows {
+		if rw.OK {
+			vals[strconv.FormatFloat(rw.Value, 'f', -1, 64)] = rw.RMSE
+		}
+	}
+	writeJSON(w, 200, map[string]any{"param": req.Param, "rows": rows, "svg": charts.Bars(vals, nil, "%.2f px")})
 }
 
 func (s *Server) stats(w http.ResponseWriter, r *http.Request) {
@@ -547,4 +558,55 @@ func (s *Server) stats(w http.ResponseWriter, r *http.Request) {
 		out["successRate"] = nil
 	}
 	writeJSON(w, 200, out)
+}
+
+func (s *Server) chart(w http.ResponseWriter, r *http.Request) {
+	js := s.st.List(ownerOf(r))
+	var svg string
+	switch strings.TrimSuffix(r.PathValue("name"), ".svg") {
+	case "rmse":
+		var pts []charts.Point
+		for i := len(js) - 1; i >= 0; i-- { // List is newest first
+			if js[i].Status == store.Completed && js[i].Result != nil {
+				pts = append(pts, charts.Point{Label: js[i].Name, Value: js[i].Result.Metrics.RMSE})
+			}
+		}
+		if len(pts) > 24 {
+			pts = pts[len(pts)-24:]
+		}
+		svg = charts.Line(pts, "px RMSE")
+	case "models", "confidence":
+		vals := map[string]float64{}
+		cls := map[string]string{"high": "ok", "medium": "warn", "low": "bad"}
+		for _, j := range js {
+			if j.Status != store.Completed || j.Result == nil {
+				continue
+			}
+			if r.PathValue("name") == "models.svg" || r.PathValue("name") == "models" {
+				vals[j.Result.ModelUsed]++
+			} else {
+				vals[j.Result.Metrics.Confidence]++
+			}
+		}
+		if r.PathValue("name") == "models.svg" || r.PathValue("name") == "models" {
+			cls = nil
+		}
+		svg = charts.Bars(vals, cls, "%.0f")
+	default:
+		writeErr(w, 404, "unknown chart")
+		return
+	}
+	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Header().Set("Cache-Control", "no-store")
+	_, _ = w.Write([]byte(svg))
+}
+
+func (s *Server) benchmark(w http.ResponseWriter, r *http.Request) {
+	b, err := os.ReadFile(filepath.Join(s.st.Dir(), "benchmark.json"))
+	if err != nil {
+		writeJSON(w, 200, map[string]any{"available": false})
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(b)
 }

@@ -1,1 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>LunarReg Workbench</title></head><body>LunarReg Workbench — UI loading (placeholder, replaced in the UI phase)</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LunarReg Workbench</title>
+<meta name="description" content="Lunar image registration and correspondence analysis workbench: multi-model RANSAC registration with live telemetry.">
+<meta property="og:title" content="LunarReg Workbench">
+<meta property="og:description" content="Lunar image registration and correspondence analysis workbench: multi-model RANSAC registration with live telemetry.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/SpaceGrotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="app">
+  <nav class="side" id="side" aria-label="Main">
+    <div class="brand"><span class="moon"></span>LunarReg</div>
+    <a class="nl" href="#/" data-r="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Mission Control</a>
+    <a class="nl" href="#/new" data-r="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New Registration</a>
+    <a class="nl" href="#/history" data-r="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Job History</a>
+    <a class="nl" href="#/lab" data-r="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v6L4 20h16l-6-11V3"/></svg>Experiment Lab</a>
+    <a class="nl" href="#/about" data-r="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>Technology</a>
+    <div class="sp"></div>
+    <div class="lbl" style="padding:0 10px 6px">Shortcuts</div>
+    <div class="muted" style="padding:0 10px;font-size:12px;line-height:2"><kbd>g</kbd> <kbd>d</kbd> dashboard<br><kbd>g</kbd> <kbd>n</kbd> new · <kbd>g</kbd> <kbd>h</kbd> history<br><kbd>?</kbd> all shortcuts</div>
+  </nav>
+  <div>
+    <header class="top">
+      <button id="burger" aria-label="Menu">☰</button>
+      <div class="row" style="flex:1"><span class="lbl" id="crumb">Mission Control</span></div>
+      <span class="chip" id="qchip" title="Queued jobs">queue 0</span>
+      <span class="chip" id="health"><span class="dot"></span><span>connecting…</span></span>
+    </header>
+    <main id="view"></main>
+    <footer>Metrics are computed from accepted correspondences in processed-pixel units and are internal-consistency diagnostics, not ground-truth validation. Bundled pairs are <b>SAMPLE DATA</b> (synthetic), not mission imagery.</footer>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip"></div>
+<script src="app.js"></script>
+</body>
+</html>

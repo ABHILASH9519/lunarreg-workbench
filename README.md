@@ -1,83 +1,58 @@
 # LunarReg Workbench 🌕
 
-**Automated lunar image registration and correspondence analysis**
+Automated lunar image registration and correspondence analysis, rebuilt as a **Go** service
+(engine, API, job queue, persistence) with a **Python** tooling layer (dataset generation,
+benchmarking, reports).
 
-LunarReg Workbench aligns a moving lunar image with a fixed reference image and evaluates the geometric consistency of the alignment. It is intended for comparative analysis of lunar imagery from missions such as Chandrayaan-2, NASA's Lunar Reconnaissance Orbiter (LRO), and SELENE.
+> **Status: work in progress (about 50%).** The Go engine, API, persistence and tests are
+> done and verified. The web UI and Python tooling are still to come — `web/index.html` is
+> currently a placeholder.
 
-## Current implementation
+## What works now
 
-The current repository is a React 19 + TypeScript + Vite application with an Internet Computer (Motoko) canister for user-scoped registration-job metadata and result history. The image-registration pipeline currently executes in the browser on decoded image pixels; it is **not** a Python/OpenCV server implementation.
+- **Engine (`internal/cv`)** — pure Go, standard library only:
+  PNG / JPEG / baseline TIFF-GeoTIFF decoding (8/16/32-bit, strips, none/Deflate/PackBits),
+  median denoise + CLAHE, Gaussian pyramid, **multi-octave** FAST-9 + Harris features with
+  oriented 256-bit BRIEF descriptors, Hamming matching with ratio test and mutual cross-check,
+  spatial-grid filtering, RANSAC with local optimisation for **similarity / affine / homography**,
+  automatic model recommendation, warping, RMSE / reprojection / coverage / NCC / mutual-information
+  metrics, and overlay / difference / checkerboard / match-line composites.
+- **Samples (`internal/synth`)** — five procedurally rendered lunar-like pairs with an exact
+  ground-truth transform (labelled SAMPLE DATA, never mission imagery).
+- **Server (`internal/server`, `internal/store`)** — REST + Server-Sent-Events API, worker pool,
+  cancel / re-run / parameter sweep, per-visitor job history on disk, CSV / JSON / ZIP export.
 
-### Implemented in the current codebase
+## Measured accuracy (synthetic ground truth)
 
-- Source (moving) and reference (fixed) image selection.
-- PNG and JPEG/JPG uploads, with a 20 MB per-file guard.
-- Grayscale conversion, optional denoising, and contrast enhancement.
-- Gaussian-pyramid generation for multi-scale analysis (the current feature detector operates on the processed base level).
-- FAST-style corner detection with Harris response ranking and a deterministic BRIEF-like binary descriptor (an ORB-inspired implementation, not OpenCV's ORB implementation).
-- Hamming-distance descriptor matching, Lowe-style ratio filtering, and mutual-nearest-neighbour cross-check.
-- RANSAC geometric verification for Similarity, Affine, and Homography candidates.
-- Explicit user-selected transformation model for the registration warp; candidate-model statistics remain available for comparison.
-- Spatial-grid correspondence filtering.
-- Registered grayscale output, overlay, difference, and checkerboard composites.
-- Computed inlier/outlier counts, RMSE, reprojection error, spatial coverage, scale, and rotation where available.
-- Job creation, result persistence, job history, and report/export interfaces through the application.
+`go test ./internal/synth -v` runs the full pipeline on every bundled pair and compares the
+recovered transform with the truth (RMS error at corners + centre):
 
-### Not yet integrated (do not present as completed)
+| Pair | Truth model | Recovered | Corner error |
+|---|---|---|---|
+| OHRC crater field | similarity | similarity | 0.22 px |
+| TMC-2 sheared mosaic | affine | affine | 0.17 px |
+| LRO NAC off-nadir | homography | homography | 0.52 px |
+| IIRS low-sun | similarity | similarity | 0.29 px |
+| SELENE noisy | similarity | similarity | 0.29 px |
 
-- Native TIFF/GeoTIFF decoding and geospatial metadata preservation.
-- OpenCV-backed SIFT, ORB, AKAZE, BRISK, or KAZE implementations. The current detector is the documented FAST + BRIEF-like implementation only.
-- True multi-octave feature detection across the generated pyramid.
-- Sub-pixel correspondence refinement.
-- A Python/OpenCV processing service or server-side GPU acceleration.
-- Independent scientific validation against a curated set of official cross-mission lunar image pairs.
+## Known limitations (honest)
 
-The UI should show unavailable metrics as N/A and should not substitute sample values for measurements. Bundled synthetic pairs are labeled DEMO/SAMPLE DATA and must not be described as official mission imagery.
+- Binary ORB-style descriptors are **not robust to large illumination changes**. With a ~40°
+  sun-azimuth change between images, feature repeatability dropped to ~29% and registration
+  failed in testing; the bundled samples therefore use moderate sun changes. The app reports
+  such failures instead of fabricating results.
+- Metrics are in processed-pixel units; they are internal-consistency diagnostics, not a
+  substitute for validation on sourced mission imagery.
+- TIFF: tiled and LZW files are rejected with an explicit error.
 
-## Workflow
-
-1. Choose a bundled synthetic sample pair or upload a supported PNG/JPEG pair.
-2. Configure preprocessing, feature count, descriptor ratio/cross-check, RANSAC threshold, spatial grid, and transformation model.
-3. Run the browser-side registration pipeline.
-4. Inspect the correspondence set, inliers/outliers, registered output, overlay, difference, and checkerboard views.
-5. Review computed metrics and warnings.
-6. Save the result to the signed-in user's job history and export the available report/artifacts.
-
-## Technology stack
-
-| Layer | Current technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| UI and routing | Radix UI components, TanStack Router, Zustand |
-| Registration engine | TypeScript browser-side computer-vision implementation |
-| Geometric verification | RANSAC and Similarity/Affine/Homography estimators |
-| Backend | Motoko canister on the Internet Computer |
-| Persistence | User-scoped job and result records in the canister; uploaded image bytes are processed client-side |
-| Tests | Vitest, Testing Library, PocketIC backend test lane |
-
-## Local development
-
-Use Node.js 22 and pnpm 9 (the repository is a pnpm workspace).
+## Run
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm --dir src/frontend dev
+go run ./cmd/lunarreg -addr :8080 -data ./data
+go test ./...
 ```
 
-Validation commands:
-
-```bash
-pnpm typecheck
-pnpm --filter @caffeine/template-frontend build
-pnpm test
-```
-
-Backend development additionally requires the Motoko package manager (mops) and the project's configured Internet Computer environment.
-
-## Scientific interpretation
-
-RMSE and reprojection error are calculated from the accepted correspondences under the selected geometric model. Inlier ratio, spatial coverage, scale, and rotation provide complementary diagnostics; none alone proves scientific correctness. A successful software run is not a substitute for ground-truth validation or mission-product provenance checks.
-
-## Future work
-
-Integrate a dedicated TIFF/GeoTIFF reader, add standards-based SIFT/ORB/AKAZE or learned feature pipelines, perform multi-scale feature detection, implement sub-pixel refinement, and validate against sourced cross-mission image pairs with documented ground truth.
+API: `GET /api/health`, `/api/samples`, `/api/stats`, `POST /api/jobs` (multipart: `sample=<id>`
+or `source`+`reference` files, optional `params` JSON), `GET /api/jobs/{id}`, `/events` (SSE),
+`/image/{registered|overlay|difference|checker|matches|before|source|reference}`,
+`/export.zip`, `/correspondences.csv`, `POST /api/jobs/{id}/rerun|cancel|sweep`.

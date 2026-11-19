@@ -7,7 +7,7 @@ LunarReg Workbench — a dark lunar space-mission scientific platform for image 
 Deep-space mission control: precise, restrained, technical — lunar grays on near-black with cyan data accents and sparing lunar-gold highlights; everything instrumented, nothing decorative.
 
 ## Differentiation
-Monospace telemetry readouts (RMSE, inliers/outliers) with a live scanline sweeping image pairs make every analysis read as an active mission instrument, not a web app.
+Monospace telemetry readouts (RMSE, inliers/outliers) with a live scanline sweeping the viewer make every analysis read as an active mission instrument, not a web app. Implemented in web/app.css + web/app.js (vanilla, embedded in the Go binary).
 
 ## Color Palette
 | Token      | OKLCH          | Role                                        |

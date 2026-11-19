@@ -34,6 +34,7 @@ func (s *Server) routes(m *http.ServeMux) {
 	m.HandleFunc("GET /api/defaults", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, cv.DefaultParams()) })
 	m.HandleFunc("GET /api/charts/{name}", s.chart)
 	m.HandleFunc("GET /api/benchmark", s.benchmark)
+	m.HandleFunc("GET /api/study", s.study)
 	m.HandleFunc("GET /api/jobs", s.listJobs)
 	m.HandleFunc("POST /api/jobs", s.createJob)
 	m.HandleFunc("GET /api/jobs/{id}", s.getJob)
@@ -601,8 +602,15 @@ func (s *Server) chart(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(svg))
 }
 
-func (s *Server) benchmark(w http.ResponseWriter, r *http.Request) {
-	b, err := os.ReadFile(filepath.Join(s.st.Dir(), "benchmark.json"))
+func (s *Server) study(w http.ResponseWriter, r *http.Request) {
+	s.serveData(w, "illumination_study.json")
+}
+
+func (s *Server) benchmark(w http.ResponseWriter, r *http.Request) { s.serveData(w, "benchmark.json") }
+
+// serveData returns a tool-generated JSON file from the data dir, or {"available":false}.
+func (s *Server) serveData(w http.ResponseWriter, name string) {
+	b, err := os.ReadFile(filepath.Join(s.st.Dir(), name))
 	if err != nil {
 		writeJSON(w, 200, map[string]any{"available": false})
 		return

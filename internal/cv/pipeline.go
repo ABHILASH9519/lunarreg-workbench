@@ -183,7 +183,8 @@ func Run(ctx context.Context, srcRaw, refRaw *Gray, p Params, progress ProgressF
 	if progress == nil {
 		progress = func(string, float64, string) {}
 	}
-	res := &Result{Params: p, TimingsMS: map[string]int64{}, Images: map[string][]byte{}}
+	res := &Result{Params: p, TimingsMS: map[string]int64{}, Images: map[string][]byte{},
+		Warnings: []string{}, Corrs: []CorrOut{}, Models: []ModelStat{}}
 	check := func() error { return ctx.Err() }
 
 	progress("preprocess", 0.05, "Grayscale, denoise, CLAHE contrast")

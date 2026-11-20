@@ -182,7 +182,13 @@ func readUpload(r *http.Request, field string) ([]byte, string, error) {
 		return nil, "", fmt.Errorf("%s exceeds the 20 MB limit", field)
 	}
 	b, err := io.ReadAll(io.LimitReader(f, maxUpload+1))
-	return b, hdr.Filename, err
+	if err != nil {
+		return nil, "", err
+	}
+	if int64(len(b)) > maxUpload {
+		return nil, "", fmt.Errorf("%s exceeds the 20 MB limit", field)
+	}
+	return b, hdr.Filename, nil
 }
 
 func (s *Server) createJob(w http.ResponseWriter, r *http.Request) {

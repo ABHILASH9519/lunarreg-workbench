@@ -183,3 +183,27 @@ func TestValidationAndUploads(t *testing.T) {
 		t.Errorf("samples = %d", len(s))
 	}
 }
+
+func TestReadUploadRejectsOversizedStream(t *testing.T) {
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	fw, err := mw.CreateFormFile("source", "oversized.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fw.Write(bytes.Repeat([]byte("x"), maxUpload+1)); err != nil {
+		t.Fatal(err)
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	r := httptest.NewRequest(http.MethodPost, "/", &body)
+	r.Header.Set("Content-Type", mw.FormDataContentType())
+	if err := r.ParseMultipartForm(8 << 20); err != nil {
+		t.Fatal(err)
+	}
+	defer r.MultipartForm.RemoveAll()
+	if _, _, err := readUpload(r, "source"); err == nil {
+		t.Fatal("expected oversized upload to be rejected")
+	}
+}

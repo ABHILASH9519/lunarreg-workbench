@@ -22,6 +22,8 @@ type Keypoint struct {
 type FeatureSet struct {
 	KP   []Keypoint
 	Desc []Desc
+	Grad [][2]GradDesc // filled lazily by ComputeGradient
+	pyr  []*Gray
 }
 
 // Hamming returns the Hamming distance between two descriptors.
@@ -246,7 +248,7 @@ func Detect(base *Gray, p DetectParams) *FeatureSet {
 		w[i] = math.Pow(0.6, float64(i))
 		wsum += w[i]
 	}
-	fs := &FeatureSet{}
+	fs := &FeatureSet{pyr: pyr}
 	for lv, img := range pyr {
 		budget := int(float64(p.Features) * w[lv] / wsum)
 		if budget < 20 {

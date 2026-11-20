@@ -22,7 +22,8 @@ type Params struct {
 	RansacThresh   float64 `json:"ransacThreshold"`
 	GridCells      int     `json:"gridCells"`
 	GridMaxPerCell int     `json:"gridMaxPerCell"`
-	Model          string  `json:"model"` // auto|similarity|affine|homography
+	Model          string  `json:"model"`      // auto|similarity|affine|homography
+	Descriptor     string  `json:"descriptor"` // auto|brief|gradient
 	MaxIter        int     `json:"maxIter"`
 	Seed           int64   `json:"seed"`
 }
@@ -31,7 +32,7 @@ type Params struct {
 func DefaultParams() Params {
 	return Params{MaxDim: 512, Denoise: true, Contrast: true, Features: 1200, Levels: 3,
 		FastThreshold: 14, Ratio: 0.85, CrossCheck: true, RansacThresh: 3, GridCells: 6,
-		GridMaxPerCell: 30, Model: "auto", MaxIter: 2500, Seed: 42}
+		GridMaxPerCell: 30, Model: "auto", Descriptor: "auto", MaxIter: 2500, Seed: 42}
 }
 
 // Validate clamps and checks parameters.
@@ -61,6 +62,9 @@ func (p *Params) Validate() error {
 	if p.Model == "" {
 		p.Model = "auto"
 	}
+	if p.Descriptor == "" {
+		p.Descriptor = "auto"
+	}
 	if p.GridMaxPerCell == 0 {
 		p.GridMaxPerCell = d.GridMaxPerCell
 	}
@@ -86,6 +90,11 @@ func (p *Params) Validate() error {
 	case "auto", ModelSimilarity, ModelAffine, ModelHomography:
 	default:
 		return errors.New("model must be auto, similarity, affine or homography")
+	}
+	switch p.Descriptor {
+	case "auto", "brief", "gradient":
+	default:
+		return errors.New("descriptor must be auto, brief or gradient")
 	}
 	return nil
 }
@@ -141,6 +150,7 @@ type Metrics struct {
 type Result struct {
 	Params          Params            `json:"params"`
 	ModelUsed       string            `json:"modelUsed"`
+	DescriptorUsed  string            `json:"descriptorUsed"`
 	Recommended     string            `json:"recommendedModel"`
 	Matrix          Mat3              `json:"matrix"`
 	Models          []ModelStat       `json:"models"`
@@ -212,49 +222,52 @@ func Run(ctx context.Context, srcRaw, refRaw *Gray, p Params, progress ProgressF
 		return nil, err
 	}
 
-	progress("matching", 0.45, "Hamming matching, ratio test, cross-check")
-	done = stageTimer(res.TimingsMS, "matching")
-	raw := MatchDescriptors(fs.Desc, fr.Desc, MatchParams{Ratio: p.Ratio, CrossCheck: p.CrossCheck})
-	res.RawMatches = len(raw)
-	ms := GridFilter(raw, fs.KP, src.W, src.H, p.GridCells, p.GridMaxPerCell)
-	res.FilteredMatches = len(ms)
-	done()
+	kinds := []string{"brief", "gradient"}
+	switch p.Descriptor {
+	case "brief":
+		kinds = kinds[:1]
+	case "gradient":
+		kinds = kinds[1:]
+	}
+	var chosen *attempt
+	for i, kind := range kinds {
+		if i == 0 {
+			progress("matching", 0.45, fmt.Sprintf("%s matching, ratio test, cross-check", kind))
+		} else {
+			progress("matching", 0.55, "Weak consensus: retrying with illumination-robust gradient descriptors")
+		}
+		a := runAttempt(kind, fs, fr, src, p, res.TimingsMS)
+		if chosen == nil || a.better(chosen) {
+			chosen = a
+		}
+		if chosen.ok && chosen.count >= 20 {
+			break
+		}
+		if err := check(); err != nil {
+			return nil, err
+		}
+		progress("verify", 0.6, "RANSAC: similarity / affine / homography")
+	}
+	ms := chosen.ms
+	res.Models, res.Recommended = chosen.stats, chosen.recommended
+	res.RawMatches, res.FilteredMatches, res.DescriptorUsed = chosen.raw, len(chosen.ms), chosen.kind
 	if len(ms) < 8 {
 		res.Warnings = append(res.Warnings, fmt.Sprintf("Only %d correspondences survived filtering (need at least 8).", len(ms)))
 		return finishFailed(res, src, ref, "not enough correspondences")
 	}
-	if err := check(); err != nil {
-		return nil, err
-	}
-
-	progress("verify", 0.6, "RANSAC: similarity / affine / homography")
-	done = stageTimer(res.TimingsMS, "verify")
-	pts := make([]Pt, len(ms))
-	for i, m := range ms {
-		a, b := fs.KP[m.I], fr.KP[m.J]
-		pts[i] = Pt{a.X, a.Y, b.X, b.Y}
-	}
-	rp := RansacParams{Threshold: p.RansacThresh, MaxIter: p.MaxIter, Seed: p.Seed}
-	results := map[string]RansacResult{}
-	for _, name := range []string{ModelSimilarity, ModelAffine, ModelHomography} {
-		results[name] = Ransac(name, pts, rp)
-		res.Models = append(res.Models, modelStat(results[name], len(pts)))
-	}
-	done()
-	res.Recommended = recommend(res.Models)
-	use := p.Model
-	if use == "auto" {
-		use = res.Recommended
-	}
+	use := chosen.use
 	if use == "" {
 		res.Warnings = append(res.Warnings, "No geometric model reached a valid consensus; images may not overlap or share too little structure.")
 		return finishFailed(res, src, ref, "no consensus")
 	}
-	best := results[use]
+	best := chosen.results[use]
 	if !best.OK {
 		res.ModelUsed = use
 		res.Warnings = append(res.Warnings, fmt.Sprintf("The selected %s model did not reach a valid consensus.", use))
 		return finishFailed(res, src, ref, "selected model failed")
+	}
+	if chosen.kind == "gradient" && len(kinds) > 1 {
+		res.Warnings = append(res.Warnings, "Standard descriptors found too little consensus, so the illumination-robust gradient descriptor was used.")
 	}
 	res.ModelUsed, res.Matrix = use, best.H
 	if err := check(); err != nil {
@@ -404,4 +417,65 @@ func warnings(r *Result, m Metrics) []string {
 		w = append(w, fmt.Sprintf("Inputs were downscaled for processing (source ×%.2f, reference ×%.2f); metrics are in processed pixels.", r.SrcScale, r.RefScale))
 	}
 	return w
+}
+
+// attempt is one full match + verify pass with a given descriptor family.
+type attempt struct {
+	kind        string
+	ms          []Match
+	raw         int
+	results     map[string]RansacResult
+	stats       []ModelStat
+	recommended string
+	use         string
+	ok          bool
+	count       int
+}
+
+func (a *attempt) better(b *attempt) bool {
+	if a.ok != b.ok {
+		return a.ok
+	}
+	return a.count > b.count
+}
+
+func runAttempt(kind string, fs, fr *FeatureSet, src *Gray, p Params, t map[string]int64) *attempt {
+	a := &attempt{kind: kind, results: map[string]RansacResult{}}
+	mp := MatchParams{Ratio: p.Ratio, CrossCheck: p.CrossCheck}
+	start := time.Now()
+	var raw []Match
+	if kind == "gradient" {
+		fs.ComputeGradient()
+		fr.ComputeGradient()
+		raw = MatchGradient(fs.Grad, fr.Grad, mp)
+	} else {
+		raw = MatchDescriptors(fs.Desc, fr.Desc, mp)
+	}
+	a.raw = len(raw)
+	a.ms = GridFilter(raw, fs.KP, src.W, src.H, p.GridCells, p.GridMaxPerCell)
+	t["matching"] += time.Since(start).Milliseconds()
+	if len(a.ms) < 8 {
+		return a
+	}
+	start = time.Now()
+	pts := make([]Pt, len(a.ms))
+	for i, m := range a.ms {
+		x, y := fs.KP[m.I], fr.KP[m.J]
+		pts[i] = Pt{x.X, x.Y, y.X, y.Y}
+	}
+	rp := RansacParams{Threshold: p.RansacThresh, MaxIter: p.MaxIter, Seed: p.Seed}
+	for _, name := range []string{ModelSimilarity, ModelAffine, ModelHomography} {
+		a.results[name] = Ransac(name, pts, rp)
+		a.stats = append(a.stats, modelStat(a.results[name], len(pts)))
+	}
+	t["verify"] += time.Since(start).Milliseconds()
+	a.recommended = recommend(a.stats)
+	a.use = p.Model
+	if a.use == "auto" {
+		a.use = a.recommended
+	}
+	if r, ok := a.results[a.use]; ok && r.OK {
+		a.ok, a.count = true, r.Count
+	}
+	return a
 }

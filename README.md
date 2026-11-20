@@ -43,13 +43,17 @@ per 512 px pair, median end-to-end 1.9 s.
 
 ## Known limitations (measured, not hidden)
 
-Binary descriptors are **not robust to large illumination changes**. `tools/illumination_study.py`
+Accuracy degrades as the sun-azimuth difference between images grows. The pipeline first uses binary
+oriented-BRIEF descriptors and, when consensus is weak, automatically retries with a contrast-reversal-invariant
+gradient descriptor (`descriptor: auto`; force one with `brief` or `gradient`). `tools/illumination_study.py`
 (3 seeds per setting, success = corner error ≤ 3 px):
 
 | Δ sun azimuth | 0° | 10° | 20° | 30° | 40° | 60° |
 |---|---|---|---|---|---|---|
-| success | 100% | 100% | 100% | 67% | 33% | 0% |
+| BRIEF only | 100% | 100% | 100% | 67% | 33% | 0% |
+| auto (with gradient fallback) | 100% | 100% | 100% | 100% | 33% | 0% |
 
+Beyond ~30° the engine is unreliable (few inliers at 30°, mostly failures at 40°+).
 Failures are reported as failures (no fabricated metrics; uncomputed values show N/A).
 Other limits: tiled / LZW TIFFs are rejected with an explicit error; metrics are processed-pixel diagnostics, not
 validation on sourced mission imagery; the data store is a local directory, not a database.
@@ -64,6 +68,6 @@ computation, rendering of charts, persistence and the API are all Go.
 ## API
 
 `GET /api/health | /samples | /stats | /defaults | /benchmark | /study | /charts/{rmse|models|confidence}.svg`
-`POST /api/jobs` (multipart: `sample=<id>` or `source`+`reference` files, optional `params` JSON)
+`POST /api/jobs` (multipart: `sample=<id>` or `source`+`reference` files, optional `params` JSON; see `GET /api/defaults`)
 `GET /api/jobs[/{id}]`, `/events` (SSE), `/image/{registered|overlay|difference|checker|matches|before|source|reference}`,
 `/export.zip`, `/correspondences.csv`, `/result.json` · `POST /api/jobs/{id}/rerun|cancel|sweep` · `DELETE /api/jobs/{id}`

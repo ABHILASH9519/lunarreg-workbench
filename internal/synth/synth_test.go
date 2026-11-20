@@ -38,3 +38,33 @@ func TestEngineRecoversGroundTruth(t *testing.T) {
 		})
 	}
 }
+
+// TestGradientDescriptorWorksAlone forces the illumination-robust descriptor
+// so that path is verified directly, not only as an automatic fallback.
+func TestGradientDescriptorWorksAlone(t *testing.T) {
+	p := All()["ohrc-crater-field"]
+	src, _, _ := cv.Decode(p.Src)
+	ref, _, _ := cv.Decode(p.Ref)
+	params := cv.DefaultParams()
+	params.Descriptor = "gradient"
+	res, err := cv.Run(context.Background(), src, ref, params, nil)
+	if err != nil {
+		t.Fatalf("gradient-only run failed: %v", err)
+	}
+	if res.DescriptorUsed != "gradient" {
+		t.Errorf("descriptor used = %q", res.DescriptorUsed)
+	}
+	if ce := CornerError(res.Matrix, p.Matrix, p.Spec.Size); ce > 3 {
+		t.Errorf("corner error %.2f px", ce)
+	} else {
+		t.Logf("gradient-only: inliers=%d cornerError=%.2fpx", res.Metrics.Inliers, ce)
+	}
+}
+
+func TestInvalidDescriptorRejected(t *testing.T) {
+	p := cv.DefaultParams()
+	p.Descriptor = "sift"
+	if err := p.Validate(); err == nil {
+		t.Error("expected validation error")
+	}
+}

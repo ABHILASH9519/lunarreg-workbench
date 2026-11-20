@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: lunarreg-api
+    runtime: docker
+    plan: free
+    region: singapore
+    repo: https://github.com/ABHILASH9519/lunarreg-workbench
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true

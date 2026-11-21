@@ -1,7 +1,6 @@
 package cv
 
 import (
-	"math"
 	"testing"
 )
 
@@ -15,7 +14,7 @@ func TestTooManyPixelsRejectsInvalidAndOverflowingDimensions(t *testing.T) {
 		{name: "negative height", w: 100, h: -1, want: true},
 		{name: "within limit", w: 1024, h: 1024, want: false},
 		{name: "over limit", w: MaxPixels + 1, h: 1, want: true},
-		{name: "multiplication would overflow", w: math.MaxInt, h: 2, want: true},
+		{name: "multiplication would overflow", w: int(^uint(0) >> 1), h: 2, want: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

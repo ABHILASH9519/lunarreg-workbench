@@ -110,3 +110,34 @@ func TestCreateRejectsInvalidAndDuplicateIDs(t *testing.T) {
 		t.Fatal("duplicate owner unexpectedly acquired the existing job")
 	}
 }
+
+func TestCreateDoesNotReplaceExistingJobPath(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const id = "abcdef012345"
+	reserved := filepath.Join(dir, "jobs", id)
+	if err := os.WriteFile(reserved, []byte("reserved path"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	j := &Job{ID: id, Owner: "owner", Status: Queued, CreatedAt: time.Now(), Params: cv.DefaultParams()}
+	if err := s.Create(j, []byte("source"), []byte("reference")); err == nil {
+		t.Fatal("expected collision with an existing job path")
+	}
+	got, err := os.ReadFile(reserved)
+	if err != nil || string(got) != "reserved path" {
+		t.Fatalf("existing path was changed: %q, %v", got, err)
+	}
+	entries, err := os.ReadDir(filepath.Join(dir, "jobs"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("staging directory leaked after failed create: %v", entries)
+	}
+	if _, ok := s.Get(id, "owner"); ok {
+		t.Fatal("failed create was added to the in-memory index")
+	}
+}

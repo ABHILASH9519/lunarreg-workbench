@@ -140,17 +140,38 @@ func (s *Store) Create(j *Job, src, ref []byte) error {
 	if _, exists := s.jobs[j.ID]; exists {
 		return errors.New("job already exists")
 	}
-	if err := os.MkdirAll(s.jobDir(j.ID), 0o755); err != nil {
+
+	// Stage every file beside the final directory, then publish the complete
+	// job with one rename. A failed write must never expose a partial job.
+	jobsDir := filepath.Join(s.dir, "jobs")
+	stage, err := os.MkdirTemp(jobsDir, ".create-")
+	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(s.jobDir(j.ID), "source.bin"), src, 0o644); err != nil {
+	defer os.RemoveAll(stage)
+	if err := os.WriteFile(filepath.Join(stage, "source.bin"), src, 0o644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(s.jobDir(j.ID), "reference.bin"), ref, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(stage, "reference.bin"), ref, 0o644); err != nil {
+		return err
+	}
+	data, err := json.Marshal(j)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(stage, "job.json"), data, 0o644); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(s.jobDir(j.ID)); err == nil {
+		return errors.New("job already exists on disk")
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	if err := os.Rename(stage, s.jobDir(j.ID)); err != nil {
 		return err
 	}
 	s.jobs[j.ID] = j
-	return s.persist(j)
+	return nil
 }
 
 // Get returns a deep-enough copy (value copy) of a job owned by owner.

@@ -103,3 +103,21 @@ func TestProjectiveMathRejectsNonFiniteValues(t *testing.T) {
 		t.Fatal("Inv accepted a matrix with a non-finite determinant")
 	}
 }
+
+func TestFitRejectsInsufficientDegenerateAndUnknownModels(t *testing.T) {
+	points := []Pt{
+		{SX: 0, SY: 0, RX: 1, RY: 1},
+		{SX: 1, SY: 1, RX: 2, RY: 2},
+		{SX: 2, SY: 2, RX: 3, RY: 3},
+		{SX: 3, SY: 3, RX: 4, RY: 4},
+	}
+	if _, err := Fit(ModelAffine, points[:2]); err == nil {
+		t.Fatal("Fit accepted too few points for affine model")
+	}
+	if _, err := Fit("unknown", points); err == nil {
+		t.Fatal("Fit accepted an unknown model")
+	}
+	if _, err := Fit(ModelAffine, points); err == nil {
+		t.Fatal("Fit accepted collinear points for affine model")
+	}
+}

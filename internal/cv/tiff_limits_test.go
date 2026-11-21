@@ -8,7 +8,7 @@ import (
 
 func TestDecodeTIFFRejectsHugeDimensionsBeforeAllocation(t *testing.T) {
 	// Minimal little-endian TIFF with width and height set to UINT32_MAX.
-	data := make([]byte, 30)
+	data := make([]byte, 38)
 	copy(data[:4], []byte{'I', 'I', '*', 0})
 	binary.LittleEndian.PutUint32(data[4:8], 8)
 	binary.LittleEndian.PutUint16(data[8:10], 2)

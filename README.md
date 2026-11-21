@@ -65,6 +65,24 @@ Go: `cmd/`, `internal/{cv,synth,store,server,charts}` (~3.7k lines incl. tests).
 (`web/`: JS, CSS, HTML — browsers require them) is separate and is about a third of the repository by bytes;
 computation, rendering of charts, persistence and the API are all Go.
 
+## Deployment
+
+The production web service is deployed as one Docker-based Go process on Render:
+[https://lunarreg-workbench.onrender.com](https://lunarreg-workbench.onrender.com).
+The Go server serves both the embedded Mission Control UI and the `/api/*` endpoints,
+so the browser uses same-origin requests and does not need a separate frontend deployment.
+
+The Render blueprint (`render.yaml`) tracks `main`, builds from `Dockerfile`, and
+uses `/api/health` as its health check. Deploys are triggered automatically after
+changes reach `main`.
+
+**Storage note:** the current blueprint uses Render's free plan and does not provision
+a persistent disk. The service writes job data under `/data`, but files on an ephemeral
+filesystem can be lost when the instance is replaced or restarted. Use a persistent
+disk mounted at `/data` (or move the store to durable object/database storage) before
+relying on the hosted instance for long-term job history. A persistent disk may incur
+additional hosting charges; it is intentionally not provisioned by this repository.
+
 ## API
 
 `GET /api/health | /samples | /stats | /defaults | /benchmark | /study | /charts/{rmse|models|confidence}.svg`

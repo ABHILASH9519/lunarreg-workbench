@@ -10,6 +10,8 @@ test-race:
 coverage:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -func=coverage.out
+fuzz-decode:
+	go test ./internal/cv -run=^$ -fuzz=FuzzDecode -fuzztime=30s
 bench:  ## needs a running server (make run)
 	python3 tools/benchmark.py --url http://localhost:8080 --out data/benchmark.json
 docker:

@@ -82,3 +82,31 @@ func TestOpenMarksInterruptedJobsAsFailed(t *testing.T) {
 		t.Fatalf("recovered job = %q (%q)", got.Status, got.Error)
 	}
 }
+
+func TestCreateRejectsInvalidAndDuplicateIDs(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Create(&Job{ID: "../outside"}, []byte("bad"), []byte("bad")); err == nil {
+		t.Fatal("expected invalid job ID to be rejected")
+	}
+
+	const id = "0123456789ab"
+	first := &Job{ID: id, Owner: "owner-a", Status: Queued, CreatedAt: time.Now(), Params: cv.DefaultParams()}
+	if err := s.Create(first, []byte("original source"), []byte("original reference")); err != nil {
+		t.Fatal(err)
+	}
+	duplicate := &Job{ID: id, Owner: "owner-b", Status: Queued, CreatedAt: time.Now(), Params: cv.DefaultParams()}
+	if err := s.Create(duplicate, []byte("replacement source"), []byte("replacement reference")); err == nil {
+		t.Fatal("expected duplicate job ID to be rejected")
+	}
+	got, err := s.ReadInput(id, "source")
+	if err != nil || !bytes.Equal(got, []byte("original source")) {
+		t.Fatalf("duplicate create changed stored input: %q, %v", got, err)
+	}
+	if _, ok := s.Get(id, "owner-b"); ok {
+		t.Fatal("duplicate owner unexpectedly acquired the existing job")
+	}
+}

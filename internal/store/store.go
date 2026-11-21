@@ -134,6 +134,12 @@ func (s *Store) persist(j *Job) error {
 func (s *Store) Create(j *Job, src, ref []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if j == nil || !validID(j.ID) {
+		return errors.New("invalid job id")
+	}
+	if _, exists := s.jobs[j.ID]; exists {
+		return errors.New("job already exists")
+	}
 	if err := os.MkdirAll(s.jobDir(j.ID), 0o755); err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import "testing"
 func TestSaneTransformRejectsImplausibleScales(t *testing.T) {
 	tests := []struct {
 		name string
-		h Mat3
+		h    Mat3
 		want bool
 	}{
 		{name: "normal scale", h: Mat3{1, 0, 0, 0, 1, 0, 0, 0, 1}, want: true},

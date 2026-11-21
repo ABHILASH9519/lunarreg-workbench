@@ -66,6 +66,9 @@ type ImageInfo struct {
 // MaxPixels guards against decompression bombs.
 const MaxPixels = 64 << 20
 
+// MaxDecodedBytes caps the raw raster allocation for formats with explicit sample layouts.
+const MaxDecodedBytes = 256 << 20
+
 // tooManyPixels checks dimensions without multiplying potentially hostile
 // header values, which could overflow before the allocation guard is applied.
 func tooManyPixels(w, h int) bool {

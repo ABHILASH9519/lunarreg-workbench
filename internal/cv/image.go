@@ -75,6 +75,14 @@ func tooManyPixels(w, h int) bool {
 	return w <= 0 || h <= 0 || w > MaxPixels/h
 }
 
+// tooManyDecodedBytes checks the decoded raster size without overflowing.
+func tooManyDecodedBytes(w, h, bytesPerPixel int) bool {
+	if w <= 0 || h <= 0 || bytesPerPixel <= 0 {
+		return true
+	}
+	return int64(w) > MaxDecodedBytes/int64(bytesPerPixel)/int64(h)
+}
+
 // Decode reads PNG, JPEG or baseline TIFF/GeoTIFF bytes into a Gray image.
 // Images deeper than 8 bits are percentile-stretched into 0..255.
 func Decode(data []byte) (*Gray, ImageInfo, error) {

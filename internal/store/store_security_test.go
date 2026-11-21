@@ -21,8 +21,8 @@ func TestStoreRejectsUnsafeIdentifiersAndInputNames(t *testing.T) {
 			t.Errorf("SaveImage accepted invalid id %q", id)
 		}
 	}
-	if _, err := s.ReadInput("0123456789ab", "../job.json"); err == nil {
-		t.Fatal("ReadInput accepted an invalid input name")
+	if _, err := s.ReadInput("0123456789ab", "../job.json"); err == nil || err.Error() != "bad request" {
+		t.Fatalf("ReadInput invalid name error = %v, want bad request", err)
 	}
 	if s.Delete("../escape", "visitor") {
 		t.Fatal("Delete accepted an invalid id")

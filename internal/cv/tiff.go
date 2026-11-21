@@ -104,6 +104,9 @@ func decodeTIFF(data []byte) (*Gray, ImageInfo, error) {
 		rps = h
 	}
 	bytesPP := bps / 8 * spp
+	if tooManyDecodedBytes(w, h, bytesPP) {
+		return nil, ImageInfo{}, errors.New("tiff: decoded raster exceeds memory limit")
+	}
 	rowBytes := w * bytesPP
 	raw := make([]byte, 0, rowBytes*h)
 	for si := range offs {

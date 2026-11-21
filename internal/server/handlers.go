@@ -319,7 +319,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Accel-Buffering", "no")
 	send := func(e Event) {
 		b, _ := json.Marshal(e)
-		fmt.Fprintf(w, "data: %s\\n\\n", b)
+		fmt.Fprintf(w, "data: %s\n\n", b)
 		fl.Flush()
 	}
 	switch j.Status {

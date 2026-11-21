@@ -9,6 +9,8 @@ import (
 // Mat3 is a row-major 3x3 matrix.
 type Mat3 [9]float64
 
+func finite(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+
 // Identity is the identity transform.
 var Identity = Mat3{1, 0, 0, 0, 1, 0, 0, 0, 1}
 
@@ -28,7 +30,7 @@ func (a Mat3) Mul(b Mat3) Mat3 {
 // Inv returns the inverse, or false when singular.
 func (a Mat3) Inv() (Mat3, bool) {
 	det := a[0]*(a[4]*a[8]-a[5]*a[7]) - a[1]*(a[3]*a[8]-a[5]*a[6]) + a[2]*(a[3]*a[7]-a[4]*a[6])
-	if math.Abs(det) < 1e-14 {
+	if !finite(det) || math.Abs(det) < 1e-14 {
 		return Mat3{}, false
 	}
 	d := 1 / det
@@ -41,11 +43,19 @@ func (a Mat3) Inv() (Mat3, bool) {
 
 // Apply maps a point; ok=false when the point goes to infinity.
 func (a Mat3) Apply(x, y float64) (float64, float64, bool) {
-	w := a[6]*x + a[7]*y + a[8]
-	if math.Abs(w) < 1e-12 {
+	if !finite(x) || !finite(y) {
 		return 0, 0, false
 	}
-	return (a[0]*x + a[1]*y + a[2]) / w, (a[3]*x + a[4]*y + a[5]) / w, true
+	w := a[6]*x + a[7]*y + a[8]
+	if !finite(w) || math.Abs(w) < 1e-12 {
+		return 0, 0, false
+	}
+	rx := (a[0]*x + a[1]*y + a[2]) / w
+	ry := (a[3]*x + a[4]*y + a[5]) / w
+	if !finite(rx) || !finite(ry) {
+		return 0, 0, false
+	}
+	return rx, ry, true
 }
 
 // Pt is a source->reference correspondence.

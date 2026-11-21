@@ -66,6 +66,12 @@ type ImageInfo struct {
 // MaxPixels guards against decompression bombs.
 const MaxPixels = 64 << 20
 
+// tooManyPixels checks dimensions without multiplying potentially hostile
+// header values, which could overflow before the allocation guard is applied.
+func tooManyPixels(w, h int) bool {
+	return w <= 0 || h <= 0 || w > MaxPixels/h
+}
+
 // Decode reads PNG, JPEG or baseline TIFF/GeoTIFF bytes into a Gray image.
 // Images deeper than 8 bits are percentile-stretched into 0..255.
 func Decode(data []byte) (*Gray, ImageInfo, error) {
@@ -78,7 +84,7 @@ func Decode(data []byte) (*Gray, ImageInfo, error) {
 		if err != nil {
 			return nil, ImageInfo{}, err
 		}
-		if cfg.Width*cfg.Height > MaxPixels {
+		if tooManyPixels(cfg.Width, cfg.Height) {
 			return nil, ImageInfo{}, errors.New("image too large")
 		}
 		img, err := png.Decode(bytes.NewReader(data))

@@ -1,4 +1,4 @@
-.PHONY: build run test test-race coverage bench docker clean
+.PHONY: build run test test-race coverage fuzz-decode bench docker clean
 build:
 	go build -trimpath -o bin/lunarreg ./cmd/lunarreg
 run: build

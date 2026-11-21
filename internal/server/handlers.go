@@ -305,16 +305,23 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 500, "streaming unsupported")
 		return
 	}
+	// Subscribe before refreshing the job snapshot. This closes the race where a
+	// worker finishes after the first Get but before the SSE subscription exists.
+	ch, unsub := s.subscribe(id)
+	defer unsub()
+	j, ok = s.st.Get(id, ownerOf(r))
+	if !ok {
+		writeErr(w, 404, "job not found")
+		return
+	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
 	send := func(e Event) {
 		b, _ := json.Marshal(e)
-		fmt.Fprintf(w, "data: %s\n\n", b)
+		fmt.Fprintf(w, "data: %s\\n\\n", b)
 		fl.Flush()
 	}
-	ch, unsub := s.subscribe(id)
-	defer unsub()
 	switch j.Status {
 	case store.Completed, store.Failed, store.Cancelled:
 		send(Event{Type: "done", Status: j.Status, Progress: 1, Msg: j.Error})

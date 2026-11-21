@@ -103,6 +103,10 @@ func decodeTIFF(data []byte) (*Gray, ImageInfo, error) {
 	if rps <= 0 || rps > h {
 		rps = h
 	}
+	expectedStrips := (h + rps - 1) / rps
+	if len(offs) != expectedStrips {
+		return nil, ImageInfo{}, errors.New("tiff: strip count does not match image height")
+	}
 	bytesPP := bps / 8 * spp
 	if tooManyDecodedBytes(w, h, bytesPP) {
 		return nil, ImageInfo{}, errors.New("tiff: decoded raster exceeds memory limit")

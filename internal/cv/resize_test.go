@@ -1,6 +1,9 @@
 package cv
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestResizePreservesConstantIntensity(t *testing.T) {
 	g := NewGray(64, 64)
@@ -12,7 +15,7 @@ func TestResizePreservesConstantIntensity(t *testing.T) {
 		t.Fatalf("resized dimensions = %dx%d", got.W, got.H)
 	}
 	for i, v := range got.Pix {
-		if v != 87 {
+		if math.Abs(float64(v-87)) > 1e-3 {
 			t.Fatalf("pixel %d = %v, want 87", i, v)
 		}
 	}

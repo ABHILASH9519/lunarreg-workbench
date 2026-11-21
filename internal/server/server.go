@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -237,6 +238,7 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			_, _ = rand.Read(b)
 			owner = hex.EncodeToString(b)
 			http.SetCookie(w, &http.Cookie{Name: "lr_uid", Value: owner, Path: "/", HttpOnly: true,
+				Secure: r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https"),
 				SameSite: http.SameSiteLaxMode, MaxAge: 60 * 60 * 24 * 365})
 		}
 		h := w.Header()

@@ -6,9 +6,9 @@ import (
 
 func TestTooManyDecodedBytes(t *testing.T) {
 	tests := []struct {
-		name string
+		name      string
 		w, h, bpp int
-		want bool
+		want      bool
 	}{
 		{name: "normal grayscale", w: 4096, h: 4096, bpp: 1, want: false},
 		{name: "large multichannel raster", w: 8192, h: 8192, bpp: 16, want: true},

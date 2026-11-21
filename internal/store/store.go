@@ -227,9 +227,20 @@ func (s *Store) Delete(id, owner string) bool {
 }
 
 // SaveImage stores a rendered PNG for a job.
+var imageKinds = map[string]struct{}{
+	"registered": {}, "overlay": {}, "difference": {}, "checker": {},
+	"matches": {}, "before": {}, "source": {}, "reference": {},
+}
+
+func validImageKind(kind string) bool {
+	_, ok := imageKinds[kind]
+	return ok
+}
+
+// SaveImage stores a rendered PNG for a job.
 func (s *Store) SaveImage(id, kind string, png []byte) error {
-	if !validID(id) {
-		return errors.New("bad id")
+	if !validID(id) || !validImageKind(kind) {
+		return errors.New("bad image id or kind")
 	}
 	d := filepath.Join(s.jobDir(id), "images")
 	if err := os.MkdirAll(d, 0o755); err != nil {
@@ -240,10 +251,10 @@ func (s *Store) SaveImage(id, kind string, png []byte) error {
 
 // ReadImage loads a rendered PNG.
 func (s *Store) ReadImage(id, kind string) ([]byte, error) {
-	if !validID(id) {
-		return nil, errors.New("bad id")
+	if !validID(id) || !validImageKind(kind) {
+		return nil, errors.New("bad image id or kind")
 	}
-	return os.ReadFile(filepath.Join(s.jobDir(id), "images", filepath.Base(kind)+".png"))
+	return os.ReadFile(filepath.Join(s.jobDir(id), "images", kind+".png"))
 }
 
 // ReadInput loads the original bytes of "source" or "reference".

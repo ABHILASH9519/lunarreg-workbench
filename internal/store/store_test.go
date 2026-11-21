@@ -141,3 +141,21 @@ func TestCreateDoesNotReplaceExistingJobPath(t *testing.T) {
 		t.Fatal("failed create was added to the in-memory index")
 	}
 }
+
+func TestImageStorageRejectsUnknownKinds(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const id = "fedcba987654"
+	if err := s.SaveImage(id, "../../escape", []byte("not a png")); err == nil {
+		t.Fatal("expected path-like image kind to be rejected")
+	}
+	if _, err := s.ReadImage(id, "../registered"); err == nil {
+		t.Fatal("expected path-like image read to be rejected")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "jobs", "escape.png")); !os.IsNotExist(err) {
+		t.Fatalf("image write escaped its directory: %v", err)
+	}
+}

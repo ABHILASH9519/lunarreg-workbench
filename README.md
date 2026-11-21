@@ -71,3 +71,21 @@ computation, rendering of charts, persistence and the API are all Go.
 `POST /api/jobs` (multipart: `sample=<id>` or `source`+`reference` files, optional `params` JSON; see `GET /api/defaults`)
 `GET /api/jobs[/{id}]`, `/events` (SSE), `/image/{registered|overlay|difference|checker|matches|before|source|reference}`,
 `/export.zip`, `/correspondences.csv`, `/result.json` · `POST /api/jobs/{id}/rerun|cancel|sweep` · `DELETE /api/jobs/{id}`
+
+## Input safety and verification
+
+Image dimensions are checked before raster allocation. The decoder rejects images above
+64 megapixels, and the strip-based TIFF path also caps decoded raster memory at 256 MiB.
+The upload API separately limits each uploaded file to 20 MiB.
+
+The CI workflow runs formatting, vet, build, unit/integration tests, Python end-to-end
+tests, and the Go race detector. For local checks:
+
+```bash
+make test-race
+make coverage
+make fuzz-decode
+```
+
+The decoder fuzz target accepts arbitrary byte streams and is intended to catch panics
+or unsafe behavior at the untrusted image boundary.

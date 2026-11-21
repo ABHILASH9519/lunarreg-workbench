@@ -4,6 +4,26 @@ import (
 	"testing"
 )
 
+func TestTooManyDecodedBytes(t *testing.T) {
+	tests := []struct {
+		name string
+		w, h, bpp int
+		want bool
+	}{
+		{name: "normal grayscale", w: 4096, h: 4096, bpp: 1, want: false},
+		{name: "large multichannel raster", w: 8192, h: 8192, bpp: 16, want: true},
+		{name: "invalid bytes per pixel", w: 32, h: 32, bpp: 0, want: true},
+		{name: "overflowing dimensions", w: int(^uint(0) >> 1), h: 2, bpp: 4, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tooManyDecodedBytes(tt.w, tt.h, tt.bpp); got != tt.want {
+				t.Fatalf("tooManyDecodedBytes(%d, %d, %d) = %v, want %v", tt.w, tt.h, tt.bpp, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTooManyPixelsRejectsInvalidAndOverflowingDimensions(t *testing.T) {
 	tests := []struct {
 		name string

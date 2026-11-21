@@ -73,7 +73,7 @@ func decodeTIFF(data []byte) (*Gray, ImageInfo, error) {
 	if w < 32 || h < 32 {
 		return nil, ImageInfo{}, errors.New("tiff: image smaller than 32x32")
 	}
-	if w*h > MaxPixels {
+	if tooManyPixels(w, h) {
 		return nil, ImageInfo{}, errors.New("tiff: image too large")
 	}
 	if _, tiled := tags[322]; tiled {

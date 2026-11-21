@@ -87,3 +87,19 @@ func TestRansacRejectsOutliers(t *testing.T) {
 		t.Fatalf("RANSAC inliers = %d, want 20", res.Count)
 	}
 }
+
+func TestProjectiveMathRejectsNonFiniteValues(t *testing.T) {
+	if _, _, ok := Identity.Apply(math.NaN(), 1); ok {
+		t.Fatal("Apply accepted a NaN input coordinate")
+	}
+	if _, _, ok := Identity.Apply(math.Inf(1), 1); ok {
+		t.Fatal("Apply accepted an infinite input coordinate")
+	}
+	bad := Mat3{1, 0, 0, 0, 1, 0, 0, 0, math.NaN()}
+	if _, _, ok := bad.Apply(1, 1); ok {
+		t.Fatal("Apply accepted a non-finite homogeneous denominator")
+	}
+	if _, ok := bad.Inv(); ok {
+		t.Fatal("Inv accepted a matrix with a non-finite determinant")
+	}
+}

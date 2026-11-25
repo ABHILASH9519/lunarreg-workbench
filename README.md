@@ -1,5 +1,23 @@
 # LunarReg Workbench 🌕
 
+<!-- portfolio-visual-start -->
+## Engineering overview
+
+![Go](https://img.shields.io/badge/Stack-Go-176b99) ![Stars](https://img.shields.io/github/stars/ABHILASH9519/lunarreg-workbench)
+
+![Animated workflow](docs/portfolio-flow.svg)
+
+```mermaid
+flowchart LR
+  N0["Image pair"] --> N1["Feature matching"] --> N2["RANSAC"] --> N3["Metrics"]
+```
+
+Illustrative workflow: Image pair → Feature matching → RANSAC → Metrics. Not live telemetry or proof of production integration.
+
+[Developer profile](https://github.com/ABHILASH9519) · [Issues](https://github.com/ABHILASH9519/lunarreg-workbench/issues)
+<!-- portfolio-visual-end -->
+
+
 Lunar image registration and correspondence analysis: a **Go** service (engine, REST/SSE API,
 job queue, persistence, SVG charts) with an embedded web UI and a **Python** tooling layer
 (dataset generator, benchmarks, CLI, reports).

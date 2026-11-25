@@ -125,3 +125,38 @@ make fuzz-decode
 
 The decoder fuzz target accepts arbitrary byte streams and is intended to catch panics
 or unsafe behavior at the untrusted image boundary.
+
+
+## Technical walkthrough
+
+```mermaid
+sequenceDiagram
+    participant P0 as Decode
+    participant P1 as Detect features
+    participant P2 as Match
+    participant P3 as RANSAC
+    participant P4 as Warp
+    participant P5 as Metrics
+    P0->>P1: Detect features
+    P1->>P2: Match
+    P2->>P3: RANSAC
+    P3->>P4: Warp
+    P4->>P5: Metrics
+    P5-->>P0: Result or status
+```
+
+This sequence is a conceptual review aid, not a recorded execution trace. Consult the implementation and existing run instructions for supported behavior.
+
+![Last commit](https://img.shields.io/github/last-commit/ABHILASH9519/lunarreg-workbench) ![Open issues](https://img.shields.io/github/issues/ABHILASH9519/lunarreg-workbench)
+
+### Synthetic registration benchmark
+
+```mermaid
+xychart-beta
+    title "Corner error on synthetic pairs (pixels; lower is better)"
+    x-axis ["OHRC", "TMC-2", "LRO NAC", "IIRS", "SELENE"]
+    y-axis "Pixels" 0 --> 0.6
+    bar [0.22, 0.17, 0.52, 0.29, 0.29]
+```
+
+Values are from the documented synthetic benchmark, not mission imagery or a new test run.
